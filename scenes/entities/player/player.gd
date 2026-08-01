@@ -8,6 +8,7 @@ enum State {
 }
 
 const DAMAGE_NUMBER = preload("res://scenes/ui/damage_number.tscn")
+const DEATH_EFFECT = preload("res://scenes/effects/death_effect.tscn")
 
 @export_category("Stats")
 @export var speed: int = 400
@@ -128,4 +129,14 @@ func _flash_damage() -> void:
 
 func die() -> void:
 	state = State.DEAD
+	$Sprite2D.visible = false
+	hit_box.monitoring = false
+	animation_tree.active = false
+
+	var effect = DEATH_EFFECT.instantiate()
+	get_tree().current_scene.add_child(effect)
+	effect.global_position = global_position + Vector2(0, -48)
+
+	await get_tree().create_timer(1.5).timeout
+	GameManager.on_player_died()
 	queue_free()

@@ -1,0 +1,54 @@
+[gd_scene format=3 uid="uid://b5xgameover12"]
+
+[ext_resource type="Script" path="res://scenes/ui/game_over.gd" id="1_go"]
+
+[node name="GameOver" type="CanvasLayer"]
+layer = 10
+process_mode = 3
+script = ExtResource("1_go")
+
+[node name="Overlay" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.7)
+
+[node name="Panel" type="PanelContainer" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -110.0
+offset_right = 150.0
+offset_bottom = 110.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="Panel"]
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="Panel/Margin"]
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="Panel/Margin/VBox"]
+text = "GAME OVER"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 36
+
+[node name="Subtitle" type="Label" parent="Panel/Margin/VBox"]
+text = "你已陣亡"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 18
+
+[node name="Spacer" type="Control" parent="Panel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 8)
+
+[node name="RestartButton" type="Button" parent="Panel/Margin/VBox"]
+text = "重新開始"
+alignment = 1
+theme_override_font_sizes/font_size = 16
+
+[connection signal="pressed" from="Panel/Margin/VBox/RestartButton" to="." method="_on_restart_pressed"]

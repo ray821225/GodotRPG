@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://deatheffect01"]
+
+[ext_resource type="Script" path="res://scenes/effects/death_effect.gd" id="1_de"]
+[ext_resource type="Texture2D" uid="uid://75hdasi3owsr" path="res://assets/effects/Dead.png" id="2_dead"]
+
+[node name="DeathEffect" type="Node2D"]
+script = ExtResource("1_de")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_dead")
+hframes = 7
+vframes = 2
+frame = 0

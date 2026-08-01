@@ -9,6 +9,7 @@ enum State {
 }
 
 const DAMAGE_NUMBER = preload("res://scenes/ui/damage_number.tscn")
+const DEATH_EFFECT = preload("res://scenes/effects/death_effect.tscn")
 
 @export_category("Stats")
 @export var speed: int = 120
@@ -23,6 +24,9 @@ const DAMAGE_NUMBER = preload("res://scenes/ui/damage_number.tscn")
 @export var wander_range: float = 100.0
 @export var wander_interval: float = 3.0
 
+@export_category("Respawn")
+@export var respawn_delay: float = 5.0
+
 var state: State = State.IDLE
 var move_direction: Vector2 = Vector2.ZERO
 var player: CharacterBody2D = null
@@ -36,6 +40,7 @@ var hp: int
 @onready var detection_area: Area2D = $DetectionArea
 @onready var hit_box: Area2D = $HitBox
 @onready var health_bar: ProgressBar = $HealthBar
+@onready var collision_shape: CollisionShape2D = $CollisionShape2D
 
 func _ready() -> void:
 	hp = max_hp
@@ -166,7 +171,33 @@ func _flash_damage() -> void:
 func die() -> void:
 	state = State.DEAD
 	velocity = Vector2.ZERO
-	queue_free()
+	player = null
+	hit_box.monitoring = false
+	detection_area.monitoring = false
+	health_bar.visible = false
+	sprite.visible = false
+	collision_shape.set_deferred("disabled", true)
+
+	var effect = DEATH_EFFECT.instantiate()
+	get_tree().current_scene.add_child(effect)
+	effect.global_position = global_position + Vector2(0, -48)
+
+	await get_tree().create_timer(respawn_delay).timeout
+	_respawn()
+
+func _respawn() -> void:
+	global_position = spawn_position
+	hp = max_hp
+	health_bar.value = hp
+	wander_target = spawn_position
+	move_direction = Vector2.ZERO
+	state = State.IDLE
+	sprite.visible = true
+	sprite.modulate = Color(1, 1, 1)
+	collision_shape.set_deferred("disabled", false)
+	detection_area.monitoring = true
+	animation_player.play("idle")
+	wander_timer.start()
 
 func update_sprite_direction() -> void:
 	if move_direction.x < -0.01:
