@@ -225,14 +225,17 @@ monitoring = false
 [node name="HitBoxShape" type="CollisionShape2D" parent="HitBox" unique_id=112340105]
 shape = SubResource("CircleShape2D_hitbox")
 
-[node name="HUD" type="CanvasLayer" parent="."]
+[node name="HUD" type="CanvasLayer" parent="." unique_id=848099133]
 
-[node name="HUDControl" type="Control" parent="HUD"]
+[node name="HUDControl" type="Control" parent="HUD" unique_id=2021411895]
+layout_mode = 3
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 
-[node name="HPBar" type="ProgressBar" parent="HUD/HUDControl"]
+[node name="HPBar" type="ProgressBar" parent="HUD/HUDControl" unique_id=290108221]
+layout_mode = 0
 offset_left = 10.0
 offset_top = 10.0
 offset_right = 210.0

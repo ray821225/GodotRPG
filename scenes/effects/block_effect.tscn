@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cr2qoejxybhm"]
+
+[ext_resource type="Script" path="res://scenes/effects/block_effect.gd" id="1_be"]
+
+[node name="BlockEffect" type="Node2D"]
+script = ExtResource("1_be")

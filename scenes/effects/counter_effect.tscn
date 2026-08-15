@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://c4wpycxfcfxc7"]
+
+[ext_resource type="Script" path="res://scenes/effects/counter_effect.gd" id="1_ce"]
+
+[node name="CounterEffect" type="Node2D"]
+script = ExtResource("1_ce")

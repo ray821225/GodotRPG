@@ -4,21 +4,35 @@ enum State {
 	IDLE,
 	RUN,
 	ATTACK,
+	BLOCK,
 	DEAD,
 }
 
 const DAMAGE_NUMBER = preload("res://scenes/ui/damage_number.tscn")
 const DEATH_EFFECT = preload("res://scenes/effects/death_effect.tscn")
+const BLOCK_EFFECT = preload("res://scenes/effects/block_effect.tscn")
+const COUNTER_EFFECT = preload("res://scenes/effects/counter_effect.tscn")
+const ATTACK_ANIM_LENGTH: float = 0.6
 
 @export_category("Stats")
 @export var speed: int = 400
-@export var attack_speed: float = 0.6
+@export var attack_speed: float = 0.3
 @export var max_hp: int = 10
-@export var attack_damage: int = 1
+@export var attack_damage: int = 100
+
+@export_category("Block")
+@export var block_damage_reduction: float = 1.0
+@export var block_window: float = 0.2
+@export var block_cooldown: float = 1.0
+@export var counter_window: float = 0.2
+@export var counter_damage_bonus: float = 0.25
 
 var state: State = State.IDLE
 var move_direction: Vector2 = Vector2(0, 0)
 var hp: int
+var block_ready: bool = true
+var is_parry_active: bool = false
+var can_counter: bool = false
 
 @onready var animation_tree: AnimationTree = $AnimationTree
 @onready var animation_playback: AnimationNodeStateMachinePlayback = $AnimationTree["parameters/playback"]
@@ -48,10 +62,38 @@ func _style_health_bar() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		attack()
+	elif event.is_action_pressed("block"):
+		try_block()
 
 func _physics_process(_delta: float) -> void:
-	if not state == State.ATTACK:
+	if state == State.ATTACK or state == State.DEAD:
+		return
+	if state != State.BLOCK:
 		movement_loop()
+
+func try_block() -> void:
+	if not block_ready or state == State.ATTACK or state == State.DEAD:
+		return
+	block_ready = false
+	is_parry_active = true
+	state = State.BLOCK
+	set_velocity(Vector2.ZERO)
+	move_and_slide()
+	_set_block_visual(true)
+	update_animation()
+
+	await get_tree().create_timer(block_window).timeout
+	is_parry_active = false
+	if state == State.BLOCK:
+		state = State.IDLE
+		_set_block_visual(false)
+		update_animation()
+
+	await get_tree().create_timer(maxf(block_cooldown - block_window, 0.0)).timeout
+	block_ready = true
+
+func _set_block_visual(active: bool) -> void:
+	$Sprite2D.modulate = Color(0.7, 0.85, 1.0) if active else Color(1, 1, 1)
 
 func movement_loop() -> void:
 	move_direction.x = int(Input.is_action_pressed("right")) - int(Input.is_action_pressed("left"))
@@ -81,41 +123,85 @@ func update_animation() -> void:
 			animation_playback.travel("run")
 		State.ATTACK:
 			animation_playback.travel("attack")
+		State.BLOCK:
+			animation_playback.travel("idle")
 
 func attack() -> void:
 	if state == State.ATTACK:
 		return
+	var is_counter: bool = can_counter
+	can_counter = false
 	state = State.ATTACK
 
 	var mouse_pos: Vector2 = get_global_mouse_position()
 	var attack_dir: Vector2 = (mouse_pos - global_position).normalized()
 	$Sprite2D.flip_h = attack_dir.x < 0 and abs(attack_dir.x) >= abs(attack_dir.y)
 	animation_tree.set("parameters/attack/BlendSpace2D/blend_position", attack_dir)
+	animation_tree.set("parameters/attack/TimeScale/scale", ATTACK_ANIM_LENGTH / attack_speed)
 	update_animation()
 
 	hit_box.position = attack_dir * 40
 	hit_box.monitoring = true
 
-	await get_tree().create_timer(0.15).timeout
-	deal_damage()
+	var hit_delay: float = attack_speed * 0.25
+	await get_tree().create_timer(hit_delay).timeout
+	deal_damage(is_counter)
 
-	await get_tree().create_timer(attack_speed - 0.15).timeout
+	await get_tree().create_timer(attack_speed - hit_delay).timeout
 	hit_box.monitoring = false
 	state = State.IDLE
 
-func deal_damage() -> void:
+func deal_damage(is_counter: bool = false) -> void:
+	if not hit_box.monitoring:
+		return
 	var bodies = hit_box.get_overlapping_bodies()
+	var damage: int = attack_damage
+	if is_counter:
+		damage = int(round(attack_damage * (1.0 + counter_damage_bonus)))
+
+	var hit_any: bool = false
 	for body in bodies:
 		if body.has_method("take_damage"):
-			body.take_damage(attack_damage)
+			body.take_damage(damage)
+			hit_any = true
+
+	if is_counter and hit_any:
+		_spawn_counter_effect()
 
 func take_damage(amount: int) -> void:
+	if is_parry_active:
+		_spawn_block_effect()
+		is_parry_active = false
+		if state == State.BLOCK:
+			state = State.IDLE
+			_set_block_visual(false)
+			update_animation()
+		amount = int(round(amount * (1.0 - block_damage_reduction)))
+		_open_counter_window()
+		if amount <= 0:
+			return
+
 	hp -= amount
 	health_bar.value = hp
 	_spawn_damage_number(amount)
 	_flash_damage()
 	if hp <= 0:
 		die()
+
+func _open_counter_window() -> void:
+	can_counter = true
+	await get_tree().create_timer(counter_window).timeout
+	can_counter = false
+
+func _spawn_block_effect() -> void:
+	var effect = BLOCK_EFFECT.instantiate()
+	get_tree().current_scene.add_child(effect)
+	effect.global_position = global_position + Vector2(0, -40)
+
+func _spawn_counter_effect() -> void:
+	var effect = COUNTER_EFFECT.instantiate()
+	get_tree().current_scene.add_child(effect)
+	effect.global_position = hit_box.global_position
 
 func _spawn_damage_number(amount: int) -> void:
 	var dn = DAMAGE_NUMBER.instantiate()

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 專案概述
 
-使用 Godot 引擎開發的 2D RPG 遊戲。雖然資料夾名稱為 `(4.4)`，`project.godot` 的 `config/features` 已升級至 **Godot 4.6**（Forward Plus 渲染）。使用 GDScript，程式碼與場景大量採用型別註記（`: int`、`-> void` 等）。
+使用 Godot 引擎開發的 2D RPG 遊戲。雖然資料夾名稱為 `(4.4)`，`project.godot` 的 `config/features` 已升級至 **Godot 4.6**（Forward Plus 渲染）。使用 GDScript，程式碼與場景大量採用型別註記（`: int`、`-> void` 等）。1.以繁體中文回覆及註解,簡潔說明
 
 ## 執行與開發
 
@@ -23,6 +23,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 架構
 
 ### 目錄結構
+
 - `scenes/entities/` — 玩家與敵人（各自包含 `.tscn` 場景與同名 `.gd` 腳本）
 - `scenes/maps/` — 地圖場景（`test_map.tscn` 為目前主場景）
 - `scenes/ui/` — UI 元件（如 `damage_number`）
@@ -31,6 +32,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `resources/tilesets/` — 共用的 TileSet 資源（`.tres`）
 
 ### 實體共通模式（player.gd 與 slime.gd）
+
 兩個角色皆為 `CharacterBody2D`，遵循一致的結構，新增實體時應沿用：
 
 1. **狀態機**：以 `enum State` + `var state` 驅動，`_physics_process` 依狀態分派行為，切換狀態時呼叫動畫更新。
@@ -39,15 +41,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 4. **血條樣式**：以程式碼在 `_style_health_bar()` 中用 `StyleBoxFlat` 覆寫 `fill`/`background` theme。
 
 ### 動畫
+
 - **Player**：使用 `AnimationTree` + `AnimationNodeStateMachine`，攻擊方向透過 `BlendSpace2D`（依滑鼠方向設定 `blend_position`）決定四向攻擊動畫。透過 `animation_playback.travel("idle"/"run"/"attack")` 切換。
 - **Slime**：較簡單，直接用 `AnimationPlayer.play("idle"/"run"/"attack_down")`。
 - 角色動畫皆為 sprite sheet 逐格（`Sprite2D:frame` 軌道，6 幀/動作，`hframes`/`vframes` 定義切割）。
 
 ### 碰撞層約定（重要，設定 Area2D/CharacterBody2D 時務必遵守）
+
 - **Layer 1**：世界/地形（TileMap 的 physics layer）
 - **Layer 2**：玩家（Player `collision_layer = 2`）
 - **Layer 3**（值 4）：敵人（Slime `collision_layer = 4`）
 - HitBox 與 DetectionArea 的 `collision_layer = 0`（自身不被偵測），僅設 `collision_mask` 指向要命中的目標層。例：玩家 HitBox `mask = 4`（打敵人）；史萊姆 HitBox/DetectionArea `mask = 2`（偵測/打玩家）。
 
 ### 地圖圖層（test_map.tscn）
+
 以多個 `TileMapLayer` 依 `z_index` 分層堆疊（Water -5、FoamRocks -4、Ground -3、Shadow -2、Plateau -1、Props 0）。根節點與含實體/道具的圖層啟用 `y_sort_enabled` 以正確處理 2D 深度排序。地形使用 Godot 的 terrain/autotile（peering bits）自動接圖。

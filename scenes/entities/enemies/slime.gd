@@ -144,6 +144,8 @@ func attack() -> void:
 			animation_player.play("idle")
 
 func deal_damage() -> void:
+	if not hit_box.monitoring:
+		return
 	var bodies = hit_box.get_overlapping_bodies()
 	for body in bodies:
 		if body.has_method("take_damage"):
