@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://bfuef8lpx85ey"]
+
+[ext_resource type="Script" path="res://scenes/skills/icespike.gd" id="1_is"]
+[ext_resource type="Texture2D" path="res://assets/effects/skills/ice/Ice VFX 1/Ice VFX 1 192x192.png" id="2_ice"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_is"]
+radius = 12.0
+
+[node name="Icespike" type="Area2D"]
+collision_layer = 0
+collision_mask = 4
+script = ExtResource("1_is")
+
+[node name="Sprite" type="Sprite2D" parent="."]
+texture = ExtResource("2_ice")
+hframes = 5
+vframes = 4
+frame = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_is")

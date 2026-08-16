@@ -18,7 +18,7 @@ const DEATH_EFFECT = preload("res://scenes/effects/death_effect.tscn")
 @export var attack_range: float = 40.0
 @export var attack_speed: float = 0.8
 @export var max_hp: int = 3
-@export var attack_damage: int = 1
+@export var attack_damage: int = 10
 
 @export_category("Wander")
 @export var wander_range: float = 100.0

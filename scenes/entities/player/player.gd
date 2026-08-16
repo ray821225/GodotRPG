@@ -12,13 +12,15 @@ const DAMAGE_NUMBER = preload("res://scenes/ui/damage_number.tscn")
 const DEATH_EFFECT = preload("res://scenes/effects/death_effect.tscn")
 const BLOCK_EFFECT = preload("res://scenes/effects/block_effect.tscn")
 const COUNTER_EFFECT = preload("res://scenes/effects/counter_effect.tscn")
+const FIREBALL = preload("res://scenes/skills/fireball.tscn")
+const ICE_SPIKE = preload("res://scenes/skills/icespike.tscn")
 const ATTACK_ANIM_LENGTH: float = 0.6
 
 @export_category("Stats")
 @export var speed: int = 400
 @export var attack_speed: float = 0.3
-@export var max_hp: int = 10
-@export var attack_damage: int = 100
+@export var max_hp: int = 10000
+@export var attack_damage: int = 10
 
 @export_category("Block")
 @export var block_damage_reduction: float = 1.0
@@ -27,12 +29,22 @@ const ATTACK_ANIM_LENGTH: float = 0.6
 @export var counter_window: float = 0.2
 @export var counter_damage_bonus: float = 0.25
 
+@export_category("Skills")
+@export var fireball_damage: int = 30
+@export var fireball_speed: float = 500.0
+@export var fireball_cooldown: float = 1.0
+@export var icespike_damage: int = 25
+@export var icespike_speed: float = 450.0
+@export var icespike_cooldown: float = 1.0
+
 var state: State = State.IDLE
 var move_direction: Vector2 = Vector2(0, 0)
 var hp: int
 var block_ready: bool = true
 var is_parry_active: bool = false
 var can_counter: bool = false
+var fireball_ready: bool = true
+var icespike_ready: bool = true
 
 @onready var animation_tree: AnimationTree = $AnimationTree
 @onready var animation_playback: AnimationNodeStateMachinePlayback = $AnimationTree["parameters/playback"]
@@ -64,6 +76,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		attack()
 	elif event.is_action_pressed("block"):
 		try_block()
+	elif event.is_action_pressed("skill_fireball"):
+		cast_fireball()
+	elif event.is_action_pressed("skill_icespike"):
+		cast_icespike()
 
 func _physics_process(_delta: float) -> void:
 	if state == State.ATTACK or state == State.DEAD:
@@ -94,6 +110,40 @@ func try_block() -> void:
 
 func _set_block_visual(active: bool) -> void:
 	$Sprite2D.modulate = Color(0.7, 0.85, 1.0) if active else Color(1, 1, 1)
+
+func cast_fireball() -> void:
+	if not fireball_ready or state == State.DEAD:
+		return
+	fireball_ready = false
+
+	var mouse_pos: Vector2 = get_global_mouse_position()
+	var cast_dir: Vector2 = (mouse_pos - global_position).normalized()
+
+	var fireball = FIREBALL.instantiate()
+	get_tree().current_scene.add_child(fireball)
+	fireball.damage = fireball_damage
+	fireball.speed = fireball_speed
+	fireball.launch(global_position + Vector2(0, -32) + cast_dir * 30, cast_dir)
+
+	await get_tree().create_timer(fireball_cooldown).timeout
+	fireball_ready = true
+
+func cast_icespike() -> void:
+	if not icespike_ready or state == State.DEAD:
+		return
+	icespike_ready = false
+
+	var mouse_pos: Vector2 = get_global_mouse_position()
+	var cast_dir: Vector2 = (mouse_pos - global_position).normalized()
+
+	var icespike = ICE_SPIKE.instantiate()
+	get_tree().current_scene.add_child(icespike)
+	icespike.damage = icespike_damage
+	icespike.speed = icespike_speed
+	icespike.launch(global_position + Vector2(0, -32) + cast_dir * 30, cast_dir)
+
+	await get_tree().create_timer(icespike_cooldown).timeout
+	icespike_ready = true
 
 func movement_loop() -> void:
 	move_direction.x = int(Input.is_action_pressed("right")) - int(Input.is_action_pressed("left"))
@@ -169,6 +219,8 @@ func deal_damage(is_counter: bool = false) -> void:
 		_spawn_counter_effect()
 
 func take_damage(amount: int) -> void:
+	if state == State.DEAD:
+		return
 	if is_parry_active:
 		_spawn_block_effect()
 		is_parry_active = false
@@ -214,10 +266,13 @@ func _flash_damage() -> void:
 	tween.tween_property($Sprite2D, "modulate", Color(1, 1, 1), 0.35)
 
 func die() -> void:
+	if state == State.DEAD:
+		return
 	state = State.DEAD
 	$Sprite2D.visible = false
 	hit_box.monitoring = false
 	animation_tree.active = false
+	$CollisionShape2D.set_deferred("disabled", true)
 
 	var effect = DEATH_EFFECT.instantiate()
 	get_tree().current_scene.add_child(effect)

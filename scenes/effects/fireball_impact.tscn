@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://bnnpcapvfqnca"]
+
+[ext_resource type="Script" uid="uid://wnr5audbamvx" path="res://scenes/effects/fireball_impact.gd" id="1_fi"]
+[ext_resource type="Texture2D" uid="uid://k0hmbgfcw4o4" path="res://assets/effects/skills/fire/explosive.png" id="2_explosive"]
+
+[node name="FireballImpact" type="Node2D" unique_id=267103306]
+script = ExtResource("1_fi")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1873783333]
+texture = ExtResource("2_explosive")
+hframes = 4
+vframes = 4
