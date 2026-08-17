@@ -4,6 +4,8 @@
 [ext_resource type="Texture2D" path="res://assets/effects/skills/ice/bubble.png" id="2_bubble"]
 
 [node name="IcespikeImpact" type="Node2D"]
+scale = Vector2(1.5, 1.5)
+z_index = 10
 script = ExtResource("1_ii")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]

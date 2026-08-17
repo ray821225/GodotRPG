@@ -12,12 +12,12 @@ const DAMAGE_NUMBER = preload("res://scenes/ui/damage_number.tscn")
 const DEATH_EFFECT = preload("res://scenes/effects/death_effect.tscn")
 
 @export_category("Stats")
-@export var speed: int = 120
-@export var chase_speed: int = 180
+@export var speed: int = 0
+@export var chase_speed: int = 0
 @export var detection_range: float = 300.0
 @export var attack_range: float = 40.0
 @export var attack_speed: float = 0.8
-@export var max_hp: int = 3
+@export var max_hp: int = 30000
 @export var attack_damage: int = 10
 
 @export_category("Wander")

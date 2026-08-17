@@ -117,13 +117,14 @@ func cast_fireball() -> void:
 	fireball_ready = false
 
 	var mouse_pos: Vector2 = get_global_mouse_position()
-	var cast_dir: Vector2 = (mouse_pos - global_position).normalized()
+	var muzzle_pos: Vector2 = global_position + Vector2(0, -32)
+	var cast_dir: Vector2 = (mouse_pos - muzzle_pos).normalized()
 
 	var fireball = FIREBALL.instantiate()
 	get_tree().current_scene.add_child(fireball)
 	fireball.damage = fireball_damage
 	fireball.speed = fireball_speed
-	fireball.launch(global_position + Vector2(0, -32) + cast_dir * 30, cast_dir)
+	fireball.launch(muzzle_pos + cast_dir * 30, cast_dir)
 
 	await get_tree().create_timer(fireball_cooldown).timeout
 	fireball_ready = true
@@ -134,13 +135,14 @@ func cast_icespike() -> void:
 	icespike_ready = false
 
 	var mouse_pos: Vector2 = get_global_mouse_position()
-	var cast_dir: Vector2 = (mouse_pos - global_position).normalized()
+	var muzzle_pos: Vector2 = global_position + Vector2(0, -32)
+	var cast_dir: Vector2 = (mouse_pos - muzzle_pos).normalized()
 
 	var icespike = ICE_SPIKE.instantiate()
 	get_tree().current_scene.add_child(icespike)
 	icespike.damage = icespike_damage
 	icespike.speed = icespike_speed
-	icespike.launch(global_position + Vector2(0, -32) + cast_dir * 30, cast_dir)
+	icespike.launch(muzzle_pos + cast_dir * 30, cast_dir)
 
 	await get_tree().create_timer(icespike_cooldown).timeout
 	icespike_ready = true

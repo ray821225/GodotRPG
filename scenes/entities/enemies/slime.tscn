@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://d3n7uemq80too" path="res://scenes/entities/enemies/slime.gd" id="2_script"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_col"]
-radius = 20.0
+radius = 34.0147
 
 [sub_resource type="Animation" id="Animation_reset"]
 length = 0.001
@@ -99,6 +99,7 @@ hframes = 6
 vframes = 8
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=999953221]
+position = Vector2(1, -34)
 shape = SubResource("CircleShape2D_col")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1071008915]
@@ -110,6 +111,7 @@ wait_time = 3.0
 autostart = true
 
 [node name="DetectionArea" type="Area2D" parent="." unique_id=918780542]
+visible = false
 collision_layer = 0
 collision_mask = 2
 
@@ -117,6 +119,7 @@ collision_mask = 2
 shape = SubResource("CircleShape2D_detect")
 
 [node name="HitBox" type="Area2D" parent="." unique_id=388185858]
+visible = false
 collision_layer = 0
 collision_mask = 2
 monitoring = false

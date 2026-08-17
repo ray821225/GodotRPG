@@ -42,10 +42,13 @@ func _physics_process(delta: float) -> void:
 func _on_body_entered(body: Node) -> void:
 	if body.has_method("take_damage"):
 		body.take_damage(damage)
-	_spawn_impact()
+	_spawn_impact(body)
 	queue_free()
 
-func _spawn_impact() -> void:
+func _spawn_impact(body: Node = null) -> void:
 	var effect = IMPACT_EFFECT.instantiate()
 	get_tree().current_scene.add_child(effect)
-	effect.global_position = global_position
+	if body is Node2D:
+		effect.global_position = (body as Node2D).global_position + Vector2(0, -34)
+	else:
+		effect.global_position = global_position
