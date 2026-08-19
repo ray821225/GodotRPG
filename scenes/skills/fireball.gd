@@ -41,7 +41,7 @@ func _physics_process(delta: float) -> void:
 
 func _on_body_entered(body: Node) -> void:
 	if body.has_method("take_damage"):
-		body.take_damage(damage)
+		body.take_damage(damage, DamageNumber.DamageType.FIRE)
 	_spawn_impact(body)
 	queue_free()
 

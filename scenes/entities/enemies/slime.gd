@@ -151,19 +151,19 @@ func deal_damage() -> void:
 		if body.has_method("take_damage"):
 			body.take_damage(attack_damage)
 
-func take_damage(amount: int) -> void:
+func take_damage(amount: int, type: DamageNumber.DamageType = DamageNumber.DamageType.PHYSICAL) -> void:
 	hp -= amount
 	health_bar.visible = true
 	health_bar.value = hp
-	_spawn_damage_number(amount)
+	_spawn_damage_number(amount, type)
 	_flash_damage()
 	if hp <= 0:
 		die()
 
-func _spawn_damage_number(amount: int) -> void:
+func _spawn_damage_number(amount: int, type: DamageNumber.DamageType) -> void:
 	var dn = DAMAGE_NUMBER.instantiate()
 	get_tree().current_scene.add_child(dn)
-	dn.setup(amount, global_position + Vector2(randf_range(-8.0, 8.0), -50.0))
+	dn.setup(amount, global_position + Vector2(randf_range(-8.0, 8.0), -70.0), type)
 
 func _flash_damage() -> void:
 	sprite.modulate = Color(1.0, 0.3, 0.3)

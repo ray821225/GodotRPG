@@ -23,7 +23,7 @@ const ATTACK_ANIM_LENGTH: float = 0.6
 @export var attack_damage: int = 10
 
 @export_category("Block")
-@export var block_damage_reduction: float = 1.0
+@export var block_damage_reduction: float = 0.8
 @export var block_window: float = 0.2
 @export var block_cooldown: float = 1.0
 @export var counter_window: float = 0.2
@@ -42,6 +42,7 @@ var move_direction: Vector2 = Vector2(0, 0)
 var hp: int
 var block_ready: bool = true
 var is_parry_active: bool = false
+var block_success: bool = false
 var can_counter: bool = false
 var fireball_ready: bool = true
 var icespike_ready: bool = true
@@ -92,6 +93,7 @@ func try_block() -> void:
 		return
 	block_ready = false
 	is_parry_active = true
+	block_success = false
 	state = State.BLOCK
 	set_velocity(Vector2.ZERO)
 	move_and_slide()
@@ -104,6 +106,10 @@ func try_block() -> void:
 		state = State.IDLE
 		_set_block_visual(false)
 		update_animation()
+
+	if block_success:
+		block_ready = true
+		return
 
 	await get_tree().create_timer(maxf(block_cooldown - block_window, 0.0)).timeout
 	block_ready = true
@@ -187,8 +193,27 @@ func attack() -> void:
 
 	var mouse_pos: Vector2 = get_global_mouse_position()
 	var attack_dir: Vector2 = (mouse_pos - global_position).normalized()
-	$Sprite2D.flip_h = attack_dir.x < 0 and abs(attack_dir.x) >= abs(attack_dir.y)
-	animation_tree.set("parameters/attack/BlendSpace2D/blend_position", attack_dir)
+
+	# 素材只有上/下/右(鏡射為左)四個方向，對角線靠「選最接近的方向 + 旋轉補角度」模擬，
+	# 原理跟左右鏡射一樣，只是鏡射換成旋轉。
+	var horizontal: bool = abs(attack_dir.x) >= abs(attack_dir.y)
+	var blend_pos: Vector2
+	var base_angle: float
+	if horizontal:
+		var facing_right: bool = attack_dir.x >= 0
+		$Sprite2D.flip_h = not facing_right
+		blend_pos = Vector2(1 if facing_right else -1, 0)
+		base_angle = 0.0 if facing_right else PI
+	else:
+		$Sprite2D.flip_h = false
+		var facing_down: bool = attack_dir.y >= 0
+		blend_pos = Vector2(0, 1 if facing_down else -1)
+		base_angle = PI / 2.0 if facing_down else -PI / 2.0
+
+	var tilt: float = wrapf(attack_dir.angle() - base_angle, -PI, PI)
+	$Sprite2D.rotation = clamp(tilt, -deg_to_rad(50.0), deg_to_rad(50.0))
+
+	animation_tree.set("parameters/attack/BlendSpace2D/blend_position", blend_pos)
 	animation_tree.set("parameters/attack/TimeScale/scale", ATTACK_ANIM_LENGTH / attack_speed)
 	update_animation()
 
@@ -201,6 +226,7 @@ func attack() -> void:
 
 	await get_tree().create_timer(attack_speed - hit_delay).timeout
 	hit_box.monitoring = false
+	$Sprite2D.rotation = 0.0
 	state = State.IDLE
 
 func deal_damage(is_counter: bool = false) -> void:
@@ -224,6 +250,7 @@ func take_damage(amount: int) -> void:
 	if state == State.DEAD:
 		return
 	if is_parry_active:
+		block_success = true
 		_spawn_block_effect()
 		is_parry_active = false
 		if state == State.BLOCK:
@@ -260,7 +287,7 @@ func _spawn_counter_effect() -> void:
 func _spawn_damage_number(amount: int) -> void:
 	var dn = DAMAGE_NUMBER.instantiate()
 	get_tree().current_scene.add_child(dn)
-	dn.setup(amount, global_position + Vector2(randf_range(-8.0, 8.0), -60.0))
+	dn.setup(amount, global_position + Vector2(randf_range(-8.0, 8.0), -70.0), DamageNumber.DamageType.TAKEN)
 
 func _flash_damage() -> void:
 	$Sprite2D.modulate = Color(1.0, 0.3, 0.3)

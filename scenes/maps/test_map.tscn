@@ -395,3 +395,6 @@ position = Vector2(500, 572)
 
 [node name="Slime" parent="." unique_id=617468819 instance=ExtResource("14_slime")]
 position = Vector2(1322, 639)
+
+[node name="Slime2" parent="." unique_id=731942658 instance=ExtResource("14_slime")]
+position = Vector2(1442, 639)
