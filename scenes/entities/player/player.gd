@@ -193,27 +193,8 @@ func attack() -> void:
 
 	var mouse_pos: Vector2 = get_global_mouse_position()
 	var attack_dir: Vector2 = (mouse_pos - global_position).normalized()
-
-	# 素材只有上/下/右(鏡射為左)四個方向，對角線靠「選最接近的方向 + 旋轉補角度」模擬，
-	# 原理跟左右鏡射一樣，只是鏡射換成旋轉。
-	var horizontal: bool = abs(attack_dir.x) >= abs(attack_dir.y)
-	var blend_pos: Vector2
-	var base_angle: float
-	if horizontal:
-		var facing_right: bool = attack_dir.x >= 0
-		$Sprite2D.flip_h = not facing_right
-		blend_pos = Vector2(1 if facing_right else -1, 0)
-		base_angle = 0.0 if facing_right else PI
-	else:
-		$Sprite2D.flip_h = false
-		var facing_down: bool = attack_dir.y >= 0
-		blend_pos = Vector2(0, 1 if facing_down else -1)
-		base_angle = PI / 2.0 if facing_down else -PI / 2.0
-
-	var tilt: float = wrapf(attack_dir.angle() - base_angle, -PI, PI)
-	$Sprite2D.rotation = clamp(tilt, -deg_to_rad(50.0), deg_to_rad(50.0))
-
-	animation_tree.set("parameters/attack/BlendSpace2D/blend_position", blend_pos)
+	$Sprite2D.flip_h = attack_dir.x < 0 and abs(attack_dir.x) >= abs(attack_dir.y)
+	animation_tree.set("parameters/attack/BlendSpace2D/blend_position", attack_dir)
 	animation_tree.set("parameters/attack/TimeScale/scale", ATTACK_ANIM_LENGTH / attack_speed)
 	update_animation()
 
@@ -226,21 +207,21 @@ func attack() -> void:
 
 	await get_tree().create_timer(attack_speed - hit_delay).timeout
 	hit_box.monitoring = false
-	$Sprite2D.rotation = 0.0
 	state = State.IDLE
 
 func deal_damage(is_counter: bool = false) -> void:
 	if not hit_box.monitoring:
 		return
-	var bodies = hit_box.get_overlapping_bodies()
+	var areas = hit_box.get_overlapping_areas()
 	var damage: int = attack_damage
 	if is_counter:
 		damage = int(round(attack_damage * (1.0 + counter_damage_bonus)))
 
 	var hit_any: bool = false
-	for body in bodies:
-		if body.has_method("take_damage"):
-			body.take_damage(damage)
+	for area in areas:
+		var target = area.get_parent()
+		if target.has_method("take_damage"):
+			target.take_damage(damage)
 			hit_any = true
 
 	if is_counter and hit_any:

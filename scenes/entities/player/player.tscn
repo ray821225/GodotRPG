@@ -4,6 +4,9 @@
 [ext_resource type="Script" uid="uid://c3r53ecshsp3m" path="res://scenes/entities/player/player.gd" id="1_635qg"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_1hmtu"]
+radius = 23.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hurtbox"]
 radius = 34.0
 
 [sub_resource type="Animation" id="Animation_reset"]
@@ -202,8 +205,15 @@ hframes = 6
 vframes = 8
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2051218836]
-position = Vector2(0, -34)
 shape = SubResource("CircleShape2D_1hmtu")
+
+[node name="HurtBox" type="Area2D" parent="." unique_id=2051218837]
+collision_layer = 2
+collision_mask = 0
+
+[node name="HurtBoxShape" type="CollisionShape2D" parent="HurtBox" unique_id=2051218838]
+position = Vector2(0, -34)
+shape = SubResource("CircleShape2D_hurtbox")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1235886156]
 

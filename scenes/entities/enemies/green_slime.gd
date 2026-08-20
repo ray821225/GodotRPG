@@ -12,13 +12,13 @@ const DAMAGE_NUMBER = preload("res://scenes/ui/damage_number.tscn")
 const DEATH_EFFECT = preload("res://scenes/effects/death_effect.tscn")
 
 @export_category("Stats")
-@export var speed: int = 0
-@export var chase_speed: int = 0
-@export var detection_range: float = 300.0
-@export var attack_range: float = 40.0
+@export var speed: int = 80
+@export var chase_speed: int = 140
+@export var detection_range: float = 250.0
+@export var attack_range: float = 36.0
 @export var attack_speed: float = 0.8
-@export var max_hp: int = 30000
-@export var attack_damage: int = 10
+@export var max_hp: int = 60
+@export var attack_damage: int = 8
 
 @export_category("Wander")
 @export var wander_range: float = 100.0
@@ -59,7 +59,7 @@ func _ready() -> void:
 
 func _style_health_bar() -> void:
 	var fill := StyleBoxFlat.new()
-	fill.bg_color = Color(0.8, 0.12, 0.1)
+	fill.bg_color = Color(0.3, 0.75, 0.25)
 	fill.set_corner_radius_all(3)
 
 	var bg := StyleBoxFlat.new()
@@ -123,11 +123,20 @@ func attack() -> void:
 	if state == State.ATTACK:
 		return
 	state = State.ATTACK
-	animation_player.play("attack_down")
 
-	var dir: Vector2 = Vector2.ZERO
+	var dir: Vector2 = Vector2.DOWN
 	if player:
 		dir = (player.global_position - global_position).normalized()
+
+	# 素材只有下/上/右(鏡射為左)三個攻擊方向，選最接近的方向動畫。
+	var horizontal: bool = abs(dir.x) >= abs(dir.y)
+	if horizontal:
+		sprite.flip_h = dir.x < 0
+		animation_player.play("attack_right")
+	else:
+		sprite.flip_h = false
+		animation_player.play("attack_down" if dir.y >= 0 else "attack_up")
+
 	hit_box.position = dir * 35
 	hit_box.monitoring = true
 
