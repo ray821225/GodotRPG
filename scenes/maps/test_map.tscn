@@ -9,7 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://h2anx7dua5qr" path="res://assets/environment/tilesheets/Shadow.png" id="6_qoqmi"]
 [ext_resource type="PackedScene" uid="uid://qnot8khdnq38" path="res://scenes/entities/player/player.tscn" id="13_yti6m"]
 [ext_resource type="PackedScene" uid="uid://cqlasgnog3knf" path="res://scenes/entities/enemies/slime.tscn" id="14_slime"]
-[ext_resource type="PackedScene" path="res://scenes/entities/enemies/green_slime.tscn" id="15_green_slime"]
+[ext_resource type="PackedScene" uid="uid://dqk8n2h3g8v4x" path="res://scenes/entities/enemies/green_slime.tscn" id="15_green_slime"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_38prr"]
 texture = ExtResource("1_2s55i")
@@ -401,4 +401,4 @@ position = Vector2(1322, 639)
 position = Vector2(1442, 639)
 
 [node name="GreenSlime" parent="." instance=ExtResource("15_green_slime")]
-position = Vector2(700, 700)
+position = Vector2(600, 639)

@@ -6,7 +6,9 @@
       "args": [
         "C:\\Users\\User\\Desktop\\RPG on godot\\godot-mcp\\build\\index.js"
       ],
-      "env": {}
+      "env": {
+        "GODOT_PATH": "C:\\Users\\User\\Desktop\\Godot_v4.6.3-stable_win64.exe\\Godot_v4.6.3-stable_win64.exe"
+      }
     }
   }
 }

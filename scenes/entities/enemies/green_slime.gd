@@ -9,7 +9,6 @@ enum State {
 }
 
 const DAMAGE_NUMBER = preload("res://scenes/ui/damage_number.tscn")
-const DEATH_EFFECT = preload("res://scenes/effects/death_effect.tscn")
 
 @export_category("Stats")
 @export var speed: int = 80
@@ -34,11 +33,11 @@ var spawn_position: Vector2
 var wander_target: Vector2
 var hp: int
 
-@onready var sprite: Sprite2D = $Sprite2D
-@onready var animation_player: AnimationPlayer = $AnimationPlayer
+@onready var sprite: AnimatedSprite2D = $Sprite2D
 @onready var wander_timer: Timer = $WanderTimer
 @onready var detection_area: Area2D = $DetectionArea
 @onready var hit_box: Area2D = $HitBox
+@onready var hurt_box: Area2D = $HurtBox
 @onready var health_bar: ProgressBar = $HealthBar
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 
@@ -90,16 +89,16 @@ func wander_loop() -> void:
 	var dir: Vector2 = (wander_target - global_position)
 	if dir.length() < 8.0:
 		state = State.IDLE
-		animation_player.play("idle")
+		sprite.play("idle")
 		return
 	move_direction = dir.normalized()
 	velocity = move_direction * speed
-	animation_player.play("run")
+	sprite.play("run")
 
 func chase_loop() -> void:
 	if player == null:
 		state = State.IDLE
-		animation_player.play("idle")
+		sprite.play("idle")
 		return
 
 	var dir: Vector2 = (player.global_position - global_position)
@@ -108,7 +107,7 @@ func chase_loop() -> void:
 	if dist > detection_range * 1.5:
 		player = null
 		state = State.IDLE
-		animation_player.play("idle")
+		sprite.play("idle")
 		return
 
 	if dist <= attack_range:
@@ -117,7 +116,7 @@ func chase_loop() -> void:
 
 	move_direction = dir.normalized()
 	velocity = move_direction * chase_speed
-	animation_player.play("run")
+	sprite.play("run")
 
 func attack() -> void:
 	if state == State.ATTACK:
@@ -128,14 +127,10 @@ func attack() -> void:
 	if player:
 		dir = (player.global_position - global_position).normalized()
 
-	# 素材只有下/上/右(鏡射為左)三個攻擊方向，選最接近的方向動畫。
-	var horizontal: bool = abs(dir.x) >= abs(dir.y)
-	if horizontal:
+	# 素材是無方向性的史萊姆撲擊動畫，僅依左右翻轉貼圖。
+	if abs(dir.x) > 0.01:
 		sprite.flip_h = dir.x < 0
-		animation_player.play("attack_right")
-	else:
-		sprite.flip_h = false
-		animation_player.play("attack_down" if dir.y >= 0 else "attack_up")
+	sprite.play("attack")
 
 	hit_box.position = dir * 35
 	hit_box.monitoring = true
@@ -150,7 +145,7 @@ func attack() -> void:
 			state = State.CHASE
 		else:
 			state = State.IDLE
-			animation_player.play("idle")
+			sprite.play("idle")
 
 func deal_damage() -> void:
 	if not hit_box.monitoring:
@@ -162,6 +157,8 @@ func deal_damage() -> void:
 			target.take_damage(attack_damage)
 
 func take_damage(amount: int, type: DamageNumber.DamageType = DamageNumber.DamageType.PHYSICAL) -> void:
+	if state == State.DEAD:
+		return
 	hp -= amount
 	health_bar.visible = true
 	health_bar.value = hp
@@ -173,7 +170,7 @@ func take_damage(amount: int, type: DamageNumber.DamageType = DamageNumber.Damag
 func _spawn_damage_number(amount: int, type: DamageNumber.DamageType) -> void:
 	var dn = DAMAGE_NUMBER.instantiate()
 	get_tree().current_scene.add_child(dn)
-	dn.setup(amount, global_position + Vector2(randf_range(-8.0, 8.0), -70.0), type)
+	dn.setup(amount, global_position + Vector2(randf_range(-8.0, 8.0), -45.0), type)
 
 func _flash_damage() -> void:
 	sprite.modulate = Color(1.0, 0.3, 0.3)
@@ -185,14 +182,15 @@ func die() -> void:
 	velocity = Vector2.ZERO
 	player = null
 	hit_box.monitoring = false
+	hurt_box.collision_layer = 0
 	detection_area.monitoring = false
 	health_bar.visible = false
-	sprite.visible = false
 	collision_shape.set_deferred("disabled", true)
 
-	var effect = DEATH_EFFECT.instantiate()
-	get_tree().current_scene.add_child(effect)
-	effect.global_position = global_position + Vector2(0, -48)
+	sprite.play("death")
+
+	await sprite.animation_finished
+	sprite.visible = false
 
 	await get_tree().create_timer(respawn_delay).timeout
 	_respawn()
@@ -207,8 +205,9 @@ func _respawn() -> void:
 	sprite.visible = true
 	sprite.modulate = Color(1, 1, 1)
 	collision_shape.set_deferred("disabled", false)
+	hurt_box.collision_layer = 4
 	detection_area.monitoring = true
-	animation_player.play("idle")
+	sprite.play("idle")
 	wander_timer.start()
 
 func update_sprite_direction() -> void:
@@ -225,7 +224,7 @@ func _on_wander_timer_timeout() -> void:
 		)
 		wander_target = spawn_position + offset
 		state = State.WANDER
-		animation_player.play("run")
+		sprite.play("run")
 
 func _on_detection_body_entered(body: Node2D) -> void:
 	if body.has_method("take_damage") and body.name == "Player":
@@ -238,4 +237,4 @@ func _on_detection_body_exited(body: Node2D) -> void:
 		player = null
 		if state != State.ATTACK and state != State.DEAD:
 			state = State.IDLE
-			animation_player.play("idle")
+			sprite.play("idle")

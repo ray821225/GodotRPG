@@ -14,10 +14,16 @@ const BLOCK_EFFECT = preload("res://scenes/effects/block_effect.tscn")
 const COUNTER_EFFECT = preload("res://scenes/effects/counter_effect.tscn")
 const FIREBALL = preload("res://scenes/skills/fireball.tscn")
 const ICE_SPIKE = preload("res://scenes/skills/icespike.tscn")
+const RoleData = preload("res://scenes/entities/player/role_data.gd")
 const ATTACK_ANIM_LENGTH: float = 0.6
+const ATTACK_LOCK_DURATION: float = 0.3
+const ATTACK_HIT_DELAY: float = 0.12
+
+@export_category("Role")
+@export var role: String = "Knight"
 
 @export_category("Stats")
-@export var speed: int = 400
+@export var speed: int = 200
 @export var attack_speed: float = 0.3
 @export var max_hp: int = 10000
 @export var attack_damage: int = 10
@@ -40,6 +46,12 @@ const ATTACK_ANIM_LENGTH: float = 0.6
 var state: State = State.IDLE
 var move_direction: Vector2 = Vector2(0, 0)
 var hp: int
+var max_mp: int
+var mp: int
+var def: int
+var m_atk: int
+var m_def: int
+var attack_ready: bool = true
 var block_ready: bool = true
 var is_parry_active: bool = false
 var block_success: bool = false
@@ -53,12 +65,27 @@ var icespike_ready: bool = true
 @onready var health_bar: ProgressBar = $HUD/HUDControl/HPBar
 
 func _ready() -> void:
+	_apply_role_stats()
 	hp = max_hp
+	mp = max_mp
 	health_bar.max_value = max_hp
 	health_bar.value = hp
 	hit_box.monitoring = false
 	animation_tree.active = true
 	_style_health_bar()
+
+func _apply_role_stats() -> void:
+	var stats: Dictionary = RoleData.get_stats(role)
+	if stats.is_empty():
+		return
+	max_hp = stats.hp
+	max_mp = stats.mp
+	attack_damage = stats.atk
+	m_atk = stats.m_atk
+	def = stats.def
+	m_def = stats.m_def
+	attack_speed = stats.atk_speed
+	speed = stats.walk_speed
 
 func _style_health_bar() -> void:
 	var fill := StyleBoxFlat.new()
@@ -185,8 +212,9 @@ func update_animation() -> void:
 			animation_playback.travel("idle")
 
 func attack() -> void:
-	if state == State.ATTACK:
+	if not attack_ready or state == State.ATTACK or state == State.BLOCK or state == State.DEAD:
 		return
+	attack_ready = false
 	var is_counter: bool = can_counter
 	can_counter = false
 	state = State.ATTACK
@@ -195,19 +223,21 @@ func attack() -> void:
 	var attack_dir: Vector2 = (mouse_pos - global_position).normalized()
 	$Sprite2D.flip_h = attack_dir.x < 0 and abs(attack_dir.x) >= abs(attack_dir.y)
 	animation_tree.set("parameters/attack/BlendSpace2D/blend_position", attack_dir)
-	animation_tree.set("parameters/attack/TimeScale/scale", ATTACK_ANIM_LENGTH / attack_speed)
+	animation_tree.set("parameters/attack/TimeScale/scale", ATTACK_ANIM_LENGTH / ATTACK_LOCK_DURATION)
 	update_animation()
 
 	hit_box.position = attack_dir * 40
 	hit_box.monitoring = true
 
-	var hit_delay: float = attack_speed * 0.25
-	await get_tree().create_timer(hit_delay).timeout
+	await get_tree().create_timer(ATTACK_HIT_DELAY).timeout
 	deal_damage(is_counter)
 
-	await get_tree().create_timer(attack_speed - hit_delay).timeout
+	await get_tree().create_timer(ATTACK_LOCK_DURATION - ATTACK_HIT_DELAY).timeout
 	hit_box.monitoring = false
 	state = State.IDLE
+
+	await get_tree().create_timer(maxf(attack_speed - ATTACK_LOCK_DURATION, 0.0)).timeout
+	attack_ready = true
 
 func deal_damage(is_counter: bool = false) -> void:
 	if not hit_box.monitoring:
