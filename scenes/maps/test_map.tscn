@@ -9,7 +9,13 @@
 [ext_resource type="Texture2D" uid="uid://h2anx7dua5qr" path="res://assets/environment/tilesheets/Shadow.png" id="6_qoqmi"]
 [ext_resource type="PackedScene" uid="uid://qnot8khdnq38" path="res://scenes/entities/player/player.tscn" id="13_yti6m"]
 [ext_resource type="PackedScene" uid="uid://cqlasgnog3knf" path="res://scenes/entities/enemies/slime.tscn" id="14_slime"]
-[ext_resource type="PackedScene" uid="uid://dqk8n2h3g8v4x" path="res://scenes/entities/enemies/green_slime.tscn" id="15_green_slime"]
+[ext_resource type="Resource" path="res://resources/enemies/slime_data_green.tres" id="20_data_green"]
+[ext_resource type="Resource" path="res://resources/enemies/slime_data_red.tres" id="21_data_red"]
+[ext_resource type="Resource" path="res://resources/enemies/slime_data_blue.tres" id="22_data_blue"]
+[ext_resource type="Resource" path="res://resources/enemies/slime_data_purple.tres" id="23_data_purple"]
+[ext_resource type="Resource" path="res://resources/enemies/slime_data_cyan.tres" id="24_data_cyan"]
+[ext_resource type="Resource" path="res://resources/enemies/slime_data_silver.tres" id="25_data_silver"]
+[ext_resource type="Resource" path="res://resources/enemies/slime_data_yellow.tres" id="26_data_yellow"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_38prr"]
 texture = ExtResource("1_2s55i")
@@ -394,11 +400,30 @@ tile_set = ExtResource("6_ibx7c")
 [node name="Player" parent="." unique_id=2058687821 instance=ExtResource("13_yti6m")]
 position = Vector2(500, 572)
 
-[node name="Slime" parent="." unique_id=617468819 instance=ExtResource("14_slime")]
-position = Vector2(1322, 639)
+[node name="SlimeRed" parent="." unique_id=617468819 instance=ExtResource("14_slime")]
+position = Vector2(1388, 764)
+data = ExtResource("21_data_red")
 
-[node name="Slime2" parent="." unique_id=731942658 instance=ExtResource("14_slime")]
+[node name="SlimeBlue" parent="." unique_id=731942658 instance=ExtResource("14_slime")]
 position = Vector2(1442, 639)
+data = ExtResource("22_data_blue")
 
-[node name="GreenSlime" parent="." instance=ExtResource("15_green_slime")]
-position = Vector2(600, 639)
+[node name="SlimeGreen" parent="." unique_id=1236004119 instance=ExtResource("14_slime")]
+position = Vector2(1447, 474)
+data = ExtResource("20_data_green")
+
+[node name="SlimePurple" parent="." unique_id=1384479607 instance=ExtResource("14_slime")]
+position = Vector2(1341, 514)
+data = ExtResource("23_data_purple")
+
+[node name="SlimeCyan" parent="." unique_id=966456844 instance=ExtResource("14_slime")]
+position = Vector2(1539, 559)
+data = ExtResource("24_data_cyan")
+
+[node name="SlimeSilver" parent="." unique_id=454919964 instance=ExtResource("14_slime")]
+position = Vector2(1523, 717)
+data = ExtResource("25_data_silver")
+
+[node name="SlimeYellow" parent="." unique_id=1874665245 instance=ExtResource("14_slime")]
+position = Vector2(1304, 639)
+data = ExtResource("26_data_yellow")

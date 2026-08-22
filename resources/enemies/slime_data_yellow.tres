@@ -1,0 +1,19 @@
+[gd_resource type="Resource" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/entities/enemies/slime_data.gd" id="1_script"]
+[ext_resource type="SpriteFrames" path="res://resources/enemies/slime_frames_yellow.tres" id="2_frames"]
+
+[resource]
+script = ExtResource("1_script")
+display_name = "Yellow"
+sprite_frames = ExtResource("2_frames")
+speed = 80
+chase_speed = 140
+detection_range = 250.0
+attack_range = 36.0
+attack_speed = 0.8
+max_hp = 60
+attack_damage = 8
+wander_range = 100.0
+wander_interval = 3.0
+respawn_delay = 5.0

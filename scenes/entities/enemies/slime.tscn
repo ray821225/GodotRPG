@@ -1,145 +1,60 @@
 [gd_scene format=3 uid="uid://cqlasgnog3knf"]
 
-[ext_resource type="Texture2D" uid="uid://ylse6gpvtwpm" path="res://assets/sprites/enemies/Warrior_Red.png" id="1_sprite"]
-[ext_resource type="Script" uid="uid://d3n7uemq80too" path="res://scenes/entities/enemies/slime.gd" id="2_script"]
+[ext_resource type="Script" uid="uid://d3n7uemq80too" path="res://scenes/entities/enemies/slime.gd" id="1_script"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_col"]
-radius = 20.0
+radius = 24.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_hurtbox"]
-radius = 34.0147
-
-[sub_resource type="Animation" id="Animation_reset"]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("Sprite2D:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [0]
-}
-
-[sub_resource type="Animation" id="Animation_attack"]
-resource_name = "attack_down"
-length = 0.6
-step = 0.1
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("Sprite2D:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5),
-"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
-"update": 1,
-"values": [24, 25, 26, 27, 28, 29]
-}
-
-[sub_resource type="Animation" id="Animation_idle"]
-resource_name = "idle"
-length = 0.6
-loop_mode = 1
-step = 0.1
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("Sprite2D:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5),
-"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
-"update": 1,
-"values": [0, 1, 2, 3, 4, 5]
-}
-
-[sub_resource type="Animation" id="Animation_run"]
-resource_name = "run"
-length = 0.6
-loop_mode = 1
-step = 0.1
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("Sprite2D:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5),
-"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
-"update": 1,
-"values": [6, 7, 8, 9, 10, 11]
-}
-
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_main"]
-_data = {
-&"RESET": SubResource("Animation_reset"),
-&"attack_down": SubResource("Animation_attack"),
-&"idle": SubResource("Animation_idle"),
-&"run": SubResource("Animation_run")
-}
+radius = 30.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_detect"]
-radius = 300.0
+radius = 250.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_hitbox"]
 radius = 28.0
 
-[node name="Slime" type="CharacterBody2D" unique_id=1895690024]
+[node name="Slime" type="CharacterBody2D" unique_id=795123043]
 collision_layer = 4
-script = ExtResource("2_script")
+script = ExtResource("1_script")
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=2028633565]
-position = Vector2(0, -32)
-texture = ExtResource("1_sprite")
-hframes = 6
-vframes = 8
+[node name="Sprite2D" type="AnimatedSprite2D" parent="." unique_id=2135642944]
+position = Vector2(0, -6)
+scale = Vector2(2, 2)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=999953221]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=617981394]
 shape = SubResource("CircleShape2D_col")
 
-[node name="HurtBox" type="Area2D" parent="." unique_id=999953222]
+[node name="HurtBox" type="Area2D" parent="." unique_id=1563827067]
 collision_layer = 4
 collision_mask = 0
 
-[node name="HurtBoxShape" type="CollisionShape2D" parent="HurtBox" unique_id=999953223]
-position = Vector2(1, -34)
+[node name="HurtBoxShape" type="CollisionShape2D" parent="HurtBox" unique_id=404873435]
+position = Vector2(0, -16)
 shape = SubResource("CircleShape2D_hurtbox")
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1071008915]
-libraries/ = SubResource("AnimationLibrary_main")
-autoplay = &"idle"
+[node name="WanderTimer" type="Timer" parent="." unique_id=2034606633]
 
-[node name="WanderTimer" type="Timer" parent="." unique_id=2108002516]
-wait_time = 3.0
-autostart = true
-
-[node name="DetectionArea" type="Area2D" parent="." unique_id=918780542]
+[node name="DetectionArea" type="Area2D" parent="." unique_id=897568873]
 visible = false
 collision_layer = 0
 collision_mask = 2
 
-[node name="DetectionShape" type="CollisionShape2D" parent="DetectionArea" unique_id=1966548477]
+[node name="DetectionShape" type="CollisionShape2D" parent="DetectionArea" unique_id=833962243]
 shape = SubResource("CircleShape2D_detect")
 
-[node name="HitBox" type="Area2D" parent="." unique_id=388185858]
+[node name="HitBox" type="Area2D" parent="." unique_id=1984302447]
 visible = false
 collision_layer = 0
 collision_mask = 2
 monitoring = false
 
-[node name="HitBoxShape" type="CollisionShape2D" parent="HitBox" unique_id=2128128907]
+[node name="HitBoxShape" type="CollisionShape2D" parent="HitBox" unique_id=79338403]
 shape = SubResource("CircleShape2D_hitbox")
 
-[node name="HealthBar" type="ProgressBar" parent="." unique_id=1994082160]
+[node name="HealthBar" type="ProgressBar" parent="." unique_id=1273655792]
 offset_left = -25.0
-offset_top = -70.0
+offset_top = -48.0
 offset_right = 25.0
-offset_bottom = -63.0
+offset_bottom = -41.0
 show_percentage = false

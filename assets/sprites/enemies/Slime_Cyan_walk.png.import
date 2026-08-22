@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b5mtp5i5tt5b7"
-path="res://.godot/imported/Slime_Green_attack.png-261978cb090ab5fa83859c08b1633f3e.ctex"
+uid="uid://ddr2s4cqsbl5g"
+path="res://.godot/imported/Slime_Cyan_walk.png-b75948dab0bbef1820adb9d7880c6c81.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/enemies/Slime_Green_attack.png"
-dest_files=["res://.godot/imported/Slime_Green_attack.png-261978cb090ab5fa83859c08b1633f3e.ctex"]
+source_file="res://assets/sprites/enemies/Slime_Cyan_walk.png"
+dest_files=["res://.godot/imported/Slime_Cyan_walk.png-b75948dab0bbef1820adb9d7880c6c81.ctex"]
 
 [params]
 
