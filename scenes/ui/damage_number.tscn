@@ -1,21 +1,22 @@
 [gd_scene format=3 uid="uid://cx8jq4tpg5mr"]
 
-[ext_resource type="Script" path="res://scenes/ui/damage_number.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://v1wo5ri61vmb" path="res://scenes/ui/damage_number.gd" id="1_script"]
 [ext_resource type="FontFile" uid="uid://lv1vppxo4kd0" path="res://assets/fonts/LilitaOne-Regular.ttf" id="2_font"]
 
-[node name="DamageNumber" type="Node2D"]
+[node name="DamageNumber" type="Node2D" unique_id=736028825]
+z_index = 100
 script = ExtResource("1_script")
 
-[node name="Label" type="Label" parent="."]
+[node name="Label" type="Label" parent="." unique_id=76803011]
 offset_left = -80.0
 offset_top = -40.0
 offset_right = 80.0
 offset_bottom = 10.0
 theme_override_colors/font_color = Color(0.75, 0.75, 0.78, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 8
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 44
-theme_override_constants/outline_size = 8
 text = "0"
 horizontal_alignment = 1
 vertical_alignment = 1

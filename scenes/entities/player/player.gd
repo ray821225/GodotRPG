@@ -18,6 +18,8 @@ const RoleData = preload("res://scenes/entities/player/role_data.gd")
 const ATTACK_ANIM_LENGTH: float = 0.6
 const ATTACK_LOCK_DURATION: float = 0.3
 const ATTACK_HIT_DELAY: float = 0.12
+const KNOCKBACK_ON_HIT: float = 10.0
+const KNOCKBACK_ON_BLOCK: float = 22.0
 
 @export_category("Role")
 @export var role: String = "Knight"
@@ -251,13 +253,13 @@ func deal_damage(is_counter: bool = false) -> void:
 	for area in areas:
 		var target = area.get_parent()
 		if target.has_method("take_damage"):
-			target.take_damage(damage)
+			target.take_damage(damage, DamageNumber.DamageType.PHYSICAL, self)
 			hit_any = true
 
 	if is_counter and hit_any:
 		_spawn_counter_effect()
 
-func take_damage(amount: int) -> void:
+func take_damage(amount: int, attacker: Node2D = null) -> void:
 	if state == State.DEAD:
 		return
 	if is_parry_active:
@@ -268,6 +270,8 @@ func take_damage(amount: int) -> void:
 			state = State.IDLE
 			_set_block_visual(false)
 			update_animation()
+		if attacker and attacker.has_method("apply_knockback"):
+			attacker.apply_knockback(attacker.global_position - global_position, KNOCKBACK_ON_BLOCK)
 		amount = int(round(amount * (1.0 - block_damage_reduction)))
 		_open_counter_window()
 		if amount <= 0:
@@ -277,8 +281,18 @@ func take_damage(amount: int) -> void:
 	health_bar.value = hp
 	_spawn_damage_number(amount)
 	_flash_damage()
+	if attacker:
+		apply_knockback(global_position - attacker.global_position, KNOCKBACK_ON_HIT)
 	if hp <= 0:
 		die()
+
+## 往 direction 方向輕輕滑一小段距離，打中/被打中時用來做「有被擊中」的手感回饋。
+func apply_knockback(direction: Vector2, strength: float) -> void:
+	if direction.length() < 0.01:
+		return
+	var target_pos: Vector2 = global_position + direction.normalized() * strength
+	var tween = create_tween()
+	tween.tween_property(self, "global_position", target_pos, 0.12).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
 func _open_counter_window() -> void:
 	can_counter = true

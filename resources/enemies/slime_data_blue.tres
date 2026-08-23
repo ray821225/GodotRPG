@@ -1,19 +1,13 @@
-[gd_resource type="Resource" load_steps=3 format=3]
+[gd_resource type="Resource" format=3 uid="uid://mtshtg3gr3l2"]
 
-[ext_resource type="Script" path="res://scenes/entities/enemies/slime_data.gd" id="1_script"]
-[ext_resource type="SpriteFrames" path="res://resources/enemies/slime_frames_blue.tres" id="2_frames"]
+[ext_resource type="Script" uid="uid://b4ruatd6runji" path="res://scenes/entities/enemies/slime_data.gd" id="1_script"]
+[ext_resource type="SpriteFrames" uid="uid://ce8ua4nl88mqm" path="res://resources/enemies/slime_frames_blue.tres" id="2_frames"]
 
 [resource]
 script = ExtResource("1_script")
+attack_animations = Array[StringName]([&"attack", &"attack2"])
 display_name = "Blue"
 sprite_frames = ExtResource("2_frames")
-speed = 80
-chase_speed = 140
-detection_range = 250.0
-attack_range = 36.0
-attack_speed = 0.8
-max_hp = 60
+use_detection = false
+attack_speed = 1.0
 attack_damage = 80
-wander_range = 100.0
-wander_interval = 3.0
-respawn_delay = 5.0
