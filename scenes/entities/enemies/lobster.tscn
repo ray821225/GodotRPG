@@ -1,0 +1,60 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/entities/enemies/slime.gd" id="1_script"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_col"]
+radius = 20.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hurtbox"]
+radius = 28.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_detect"]
+radius = 250.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hitbox"]
+radius = 26.0
+
+[node name="Lobster" type="CharacterBody2D"]
+collision_layer = 4
+script = ExtResource("1_script")
+
+[node name="Sprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(0, -24)
+scale = Vector2(0.4, 0.4)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_col")
+
+[node name="HurtBox" type="Area2D" parent="."]
+collision_layer = 4
+collision_mask = 0
+
+[node name="HurtBoxShape" type="CollisionShape2D" parent="HurtBox"]
+position = Vector2(0, -24)
+shape = SubResource("CircleShape2D_hurtbox")
+
+[node name="WanderTimer" type="Timer" parent="."]
+
+[node name="DetectionArea" type="Area2D" parent="."]
+visible = false
+collision_layer = 0
+collision_mask = 2
+
+[node name="DetectionShape" type="CollisionShape2D" parent="DetectionArea"]
+shape = SubResource("CircleShape2D_detect")
+
+[node name="HitBox" type="Area2D" parent="."]
+visible = false
+collision_layer = 0
+collision_mask = 2
+monitoring = false
+
+[node name="HitBoxShape" type="CollisionShape2D" parent="HitBox"]
+shape = SubResource("CircleShape2D_hitbox")
+
+[node name="HealthBar" type="ProgressBar" parent="."]
+offset_left = -25.0
+offset_top = -63.0
+offset_right = 25.0
+offset_bottom = -56.0
+show_percentage = false

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" format=3 uid="uid://ckgabhr70mgem"]
+
+[ext_resource type="Script" uid="uid://b4ruatd6runji" path="res://scenes/entities/enemies/slime_data.gd" id="1_script"]
+[ext_resource type="SpriteFrames" uid="uid://c6y8hcomuqjj4" path="res://resources/enemies/mushroom_frames.tres" id="2_frames"]
+
+[resource]
+script = ExtResource("1_script")
+display_name = "Mushroom"
+sprite_frames = ExtResource("2_frames")
+faces_left_by_default = true
+speed = 60
+chase_speed = 110
+use_detection = false
+attack_range = 40.0
+attack_speed = 1.0
+max_hp = 80
+attack_damage = 10
+wander_range = 90.0
+wander_interval = 3.5
+respawn_delay = 6.0

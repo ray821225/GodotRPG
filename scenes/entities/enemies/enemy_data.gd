@@ -8,6 +8,9 @@ extends Resource
 
 @export var display_name: String = "Enemy"
 @export var sprite_frames: SpriteFrames
+## 素材本身「沒翻轉時」預設面向哪邊：大多數素材預設面右，但有些（例如 Mushroom）
+## 攻擊動作本身就是往畫面左邊揮，這種要打開此選項，flip_h 的判斷才不會左右相反。
+@export var faces_left_by_default: bool = false
 
 @export_category("Stats")
 @export var speed: int = 80

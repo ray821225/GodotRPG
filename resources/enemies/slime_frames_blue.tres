@@ -1,10 +1,10 @@
 [gd_resource type="SpriteFrames" format=3 uid="uid://ce8ua4nl88mqm"]
 
-[ext_resource type="Texture2D" uid="uid://cs13y5aekhpbv" path="res://assets/sprites/enemies/Slime_Blue_attack.png" id="1_attack"]
-[ext_resource type="Texture2D" uid="uid://dw863y2cb42ki" path="res://assets/sprites/enemies/Slime_Blue_attack2.png" id="1_attack2"]
-[ext_resource type="Texture2D" uid="uid://csymd8sc52frl" path="res://assets/sprites/enemies/Slime_Blue_death.png" id="1_death"]
-[ext_resource type="Texture2D" uid="uid://cqmf6bif18vqk" path="res://assets/sprites/enemies/Slime_Blue_idle.png" id="1_idle"]
-[ext_resource type="Texture2D" uid="uid://dpdp5m1hncc5a" path="res://assets/sprites/enemies/Slime_Blue_walk.png" id="1_walk"]
+[ext_resource type="Texture2D" uid="uid://cs13y5aekhpbv" path="res://assets/sprites/enemies/slime/Slime_Blue_attack.png" id="1_attack"]
+[ext_resource type="Texture2D" uid="uid://dw863y2cb42ki" path="res://assets/sprites/enemies/slime/Slime_Blue_attack2.png" id="1_attack2"]
+[ext_resource type="Texture2D" uid="uid://csymd8sc52frl" path="res://assets/sprites/enemies/slime/Slime_Blue_death.png" id="1_death"]
+[ext_resource type="Texture2D" uid="uid://cqmf6bif18vqk" path="res://assets/sprites/enemies/slime/Slime_Blue_idle.png" id="1_idle"]
+[ext_resource type="Texture2D" uid="uid://dpdp5m1hncc5a" path="res://assets/sprites/enemies/slime/Slime_Blue_walk.png" id="1_walk"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_attack_0"]
 atlas = ExtResource("1_attack")

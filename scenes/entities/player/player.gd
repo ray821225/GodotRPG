@@ -146,6 +146,12 @@ func try_block() -> void:
 func _set_block_visual(active: bool) -> void:
 	$Sprite2D.modulate = Color(0.7, 0.85, 1.0) if active else Color(1, 1, 1)
 
+## 格擋中被攻擊輸入打斷時呼叫：清掉格擋視覺與 parry 判定，讓 attack() 能正常出招。
+## try_block() 自己的計時器之後還是會照原本節奏跑完 block_cooldown，不會因此提早重置。
+func _cancel_block() -> void:
+	is_parry_active = false
+	_set_block_visual(false)
+
 func cast_fireball() -> void:
 	if not fireball_ready or state == State.DEAD:
 		return
@@ -214,8 +220,10 @@ func update_animation() -> void:
 			animation_playback.travel("idle")
 
 func attack() -> void:
-	if not attack_ready or state == State.ATTACK or state == State.BLOCK or state == State.DEAD:
+	if not attack_ready or state == State.ATTACK or state == State.DEAD:
 		return
+	if state == State.BLOCK:
+		_cancel_block()
 	attack_ready = false
 	var is_counter: bool = can_counter
 	can_counter = false
@@ -250,14 +258,16 @@ func deal_damage(is_counter: bool = false) -> void:
 		damage = int(round(attack_damage * (1.0 + counter_damage_bonus)))
 
 	var hit_any: bool = false
+	var last_target: Node2D = null
 	for area in areas:
 		var target = area.get_parent()
 		if target.has_method("take_damage"):
 			target.take_damage(damage, DamageNumber.DamageType.PHYSICAL, self)
 			hit_any = true
+			last_target = target
 
 	if is_counter and hit_any:
-		_spawn_counter_effect()
+		_spawn_counter_effect(last_target.global_position)
 
 func take_damage(amount: int, attacker: Node2D = null) -> void:
 	if state == State.DEAD:
@@ -304,10 +314,10 @@ func _spawn_block_effect() -> void:
 	get_tree().current_scene.add_child(effect)
 	effect.global_position = global_position + Vector2(0, -40)
 
-func _spawn_counter_effect() -> void:
+func _spawn_counter_effect(target_position: Vector2) -> void:
 	var effect = COUNTER_EFFECT.instantiate()
 	get_tree().current_scene.add_child(effect)
-	effect.global_position = hit_box.global_position
+	effect.global_position = target_position + Vector2(0, -30)
 
 func _spawn_damage_number(amount: int) -> void:
 	var dn = DAMAGE_NUMBER.instantiate()
@@ -325,6 +335,7 @@ func die() -> void:
 	state = State.DEAD
 	$Sprite2D.visible = false
 	hit_box.monitoring = false
+	$HurtBox.collision_layer = 0
 	animation_tree.active = false
 	$CollisionShape2D.set_deferred("disabled", true)
 

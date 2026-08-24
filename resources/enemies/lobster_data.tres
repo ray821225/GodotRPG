@@ -1,0 +1,20 @@
+[gd_resource type="Resource" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/entities/enemies/slime_data.gd" id="1_script"]
+[ext_resource type="SpriteFrames" path="res://resources/enemies/lobster_frames.tres" id="2_frames"]
+
+[resource]
+script = ExtResource("1_script")
+display_name = "Lobster"
+sprite_frames = ExtResource("2_frames")
+speed = 55
+chase_speed = 100
+use_detection = false
+attack_range = 42.0
+attack_speed = 1.1
+max_hp = 100
+attack_damage = 12
+wander_range = 90.0
+wander_interval = 3.5
+respawn_delay = 6.0
+attack_animations = Array[StringName](["attack"])

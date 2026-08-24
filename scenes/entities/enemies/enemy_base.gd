@@ -21,6 +21,7 @@ const KNOCKBACK_ON_HIT: float = 14.0
 
 var speed: int
 var chase_speed: int
+var faces_left_by_default: bool = false
 var use_detection: bool = true
 var detection_range: float
 var attack_range: float
@@ -69,6 +70,7 @@ func _apply_data() -> void:
 	sprite.play("idle")
 	speed = data.speed
 	chase_speed = data.chase_speed
+	faces_left_by_default = data.faces_left_by_default
 	use_detection = data.use_detection
 	detection_range = data.detection_range
 	attack_range = data.attack_range
@@ -111,6 +113,9 @@ func _physics_process(_delta: float) -> void:
 
 	if state != State.DEAD:
 		move_and_slide()
+	# 攻擊時的朝向由 attack() 依照目標方向決定，這裡不能再用移動方向覆蓋回去，
+	# 不然攻擊動畫會被「進入攻擊前殘留的舊 move_direction」蓋掉，看起來一直朝同一邊。
+	if state == State.WANDER or state == State.CHASE:
 		update_sprite_direction()
 
 func wander_loop() -> void:
@@ -155,7 +160,7 @@ func attack() -> void:
 	if player:
 		dir = (player.global_position - global_position).normalized()
 	if abs(dir.x) > 0.01:
-		sprite.flip_h = dir.x < 0
+		sprite.flip_h = (dir.x < 0) != faces_left_by_default
 
 	# _perform_attack() 由子類別覆寫，實際上大多是 async coroutine，
 	# 靜態分析器只看基底類別的簽章會誤判成不需要 await，這裡明確抑制。
@@ -249,9 +254,9 @@ func _respawn() -> void:
 
 func update_sprite_direction() -> void:
 	if move_direction.x < -0.01:
-		sprite.flip_h = true
+		sprite.flip_h = not faces_left_by_default
 	elif move_direction.x > 0.01:
-		sprite.flip_h = false
+		sprite.flip_h = faces_left_by_default
 
 func _restart_wander_timer() -> void:
 	# 每次都重新抽一個隨機間隔，避免所有敵人的漫遊/停止節奏同步。
