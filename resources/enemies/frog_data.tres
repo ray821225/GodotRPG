@@ -1,0 +1,26 @@
+[gd_resource type="Resource" format=3 uid="uid://vmut1yvglw46"]
+
+[ext_resource type="Script" uid="uid://b4ruatd6runji" path="res://scenes/entities/enemies/slime_data.gd" id="1_script"]
+[ext_resource type="SpriteFrames" uid="uid://bgbv0bkda26uc" path="res://resources/enemies/frog_frames.tres" id="2_frames"]
+
+[resource]
+script = ExtResource("1_script")
+attack_animations = Array[StringName]([&"spit", &"tongue"])
+attack_reach = 120.0
+attack_hit_ratios = {
+"spit": 0.64,
+"tongue": 0.375
+}
+display_name = "Frog"
+sprite_frames = ExtResource("2_frames")
+speed = 50
+chase_speed = 90
+use_detection = false
+attack_range = 140.0
+attack_needs_horizontal_align = true
+attack_speed = 1.3
+max_hp = 90
+attack_damage = 11
+wander_range = 110.0
+wander_interval = 3.5
+respawn_delay = 6.0

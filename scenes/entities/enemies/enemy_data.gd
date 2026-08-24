@@ -18,7 +18,14 @@ extends Resource
 ## 會不會主動索敵：關掉的話不會憑空跑來攻擊玩家，但只要被打中一次還是會反過來追打攻擊者。
 @export var use_detection: bool = true
 @export var detection_range: float = 250.0
+## 追擊時離「出生點」超過這個距離就放棄追擊、回家並補滿血，不會無限跟著玩家跑。
+@export var leash_range: float = 350.0
 @export var attack_range: float = 36.0
+## 攻擊動畫只有左右鏡像、沒有上下/斜角版本時打開：距離夠了但跟玩家垂直落差太大
+## （超過 attack_align_tolerance）不會發動攻擊，會先移動到大致同一水平線再攻擊，
+## 避免看起來往旁邊打卻打到斜上方的玩家。近戰類怪物攻擊距離短，不太需要開。
+@export var attack_needs_horizontal_align: bool = false
+@export var attack_align_tolerance: float = 40.0
 @export var attack_speed: float = 0.8
 @export var max_hp: int = 60
 @export var attack_damage: int = 8

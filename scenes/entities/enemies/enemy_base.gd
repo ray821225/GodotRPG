@@ -16,6 +16,9 @@ enum State {
 const DAMAGE_NUMBER = preload("res://scenes/ui/damage_number.tscn")
 const EnemyData = preload("res://scenes/entities/enemies/enemy_data.gd")
 const KNOCKBACK_ON_HIT: float = 14.0
+const WANDER_STUCK_CHECK_INTERVAL: float = 0.4
+const WANDER_STUCK_MIN_DISTANCE: float = 12.0
+const WANDER_STUCK_LIMIT: int = 3
 
 @export var data: EnemyData
 
@@ -24,7 +27,10 @@ var chase_speed: int
 var faces_left_by_default: bool = false
 var use_detection: bool = true
 var detection_range: float
+var leash_range: float = 350.0
 var attack_range: float
+var attack_needs_horizontal_align: bool = false
+var attack_align_tolerance: float = 40.0
 var attack_speed: float
 var max_hp: int
 var attack_damage: int
@@ -38,6 +44,10 @@ var player: CharacterBody2D = null
 var spawn_position: Vector2
 var wander_target: Vector2
 var hp: int
+
+var _wander_stuck_check_elapsed: float = 0.0
+var _wander_stuck_count: int = 0
+var _wander_check_position: Vector2 = Vector2.ZERO
 
 @onready var sprite: AnimatedSprite2D = $Sprite2D
 @onready var wander_timer: Timer = $WanderTimer
@@ -73,7 +83,10 @@ func _apply_data() -> void:
 	faces_left_by_default = data.faces_left_by_default
 	use_detection = data.use_detection
 	detection_range = data.detection_range
+	leash_range = data.leash_range
 	attack_range = data.attack_range
+	attack_needs_horizontal_align = data.attack_needs_horizontal_align
+	attack_align_tolerance = data.attack_align_tolerance
 	attack_speed = data.attack_speed
 	max_hp = data.max_hp
 	attack_damage = data.attack_damage
@@ -121,12 +134,32 @@ func _physics_process(_delta: float) -> void:
 func wander_loop() -> void:
 	var dir: Vector2 = (wander_target - global_position)
 	if dir.length() < 8.0:
-		state = State.IDLE
-		sprite.play("idle")
+		_end_wander()
 		return
+
+	# 卡住偵測：每隔一小段時間檢查有沒有實際前進，被地形（例如樹）卡住走不動的話，
+	# 放棄這次的漫遊目標回到 IDLE，避免永遠頂著障礙物原地抖動。
+	_wander_stuck_check_elapsed += get_physics_process_delta_time()
+	if _wander_stuck_check_elapsed >= WANDER_STUCK_CHECK_INTERVAL:
+		_wander_stuck_check_elapsed = 0.0
+		if global_position.distance_to(_wander_check_position) < WANDER_STUCK_MIN_DISTANCE:
+			_wander_stuck_count += 1
+			if _wander_stuck_count >= WANDER_STUCK_LIMIT:
+				_end_wander()
+				return
+		else:
+			_wander_stuck_count = 0
+		_wander_check_position = global_position
+
 	move_direction = dir.normalized()
 	velocity = move_direction * speed
 	sprite.play("run")
+
+func _end_wander() -> void:
+	state = State.IDLE
+	sprite.play("idle")
+	_wander_stuck_count = 0
+	_wander_stuck_check_elapsed = 0.0
 
 func chase_loop() -> void:
 	if player == null:
@@ -137,19 +170,39 @@ func chase_loop() -> void:
 	var dir: Vector2 = (player.global_position - global_position)
 	var dist: float = dir.length()
 
-	if dist > detection_range * 1.5:
-		player = null
-		state = State.IDLE
-		sprite.play("idle")
+	if dist > detection_range * 1.5 or global_position.distance_to(spawn_position) > leash_range:
+		_give_up_chase()
 		return
 
 	if dist <= attack_range:
-		attack()
+		if not attack_needs_horizontal_align or absf(dir.y) <= attack_align_tolerance:
+			attack()
+			return
+		# 距離夠了但垂直落差太大：攻擊動畫只有左右鏡像打不到這個角度，
+		# 要往上下移動去貼近玩家的 Y 座標（縮小 dir.y），不是追 X，
+		# 對齊了（dir.y 落在容許範圍內）下一輪 chase_loop() 才會真的攻擊。
+		move_direction = Vector2(0.0, signf(dir.y))
+		velocity = move_direction * chase_speed
+		sprite.play("run")
 		return
 
 	move_direction = dir.normalized()
 	velocity = move_direction * chase_speed
 	sprite.play("run")
+
+## 追太遠（超過 leash_range）或玩家跑太遠時放棄追擊：血補滿、走回出生點，
+## 沿用 WANDER 的移動（含卡住偵測），走到家自然變回 IDLE。
+func _give_up_chase() -> void:
+	player = null
+	hp = max_hp
+	health_bar.value = hp
+	health_bar.visible = false
+	wander_target = spawn_position
+	state = State.WANDER
+	sprite.play("run")
+	_wander_stuck_count = 0
+	_wander_stuck_check_elapsed = 0.0
+	_wander_check_position = global_position
 
 func attack() -> void:
 	if state == State.ATTACK:
@@ -229,9 +282,12 @@ func die() -> void:
 	health_bar.visible = false
 	collision_shape.set_deferred("disabled", true)
 
-	sprite.play("death")
-
-	await sprite.animation_finished
+	# 有些素材還沒補死亡動畫（例如大青蛙），沒有就直接停頓一下淡出，不要整個爆錯誤。
+	if sprite.sprite_frames.has_animation("death"):
+		sprite.play("death")
+		await sprite.animation_finished
+	else:
+		await get_tree().create_timer(0.3).timeout
 	sprite.visible = false
 
 	await get_tree().create_timer(respawn_delay).timeout
@@ -272,6 +328,9 @@ func _on_wander_timer_timeout() -> void:
 		wander_target = spawn_position + offset
 		state = State.WANDER
 		sprite.play("run")
+		_wander_stuck_count = 0
+		_wander_stuck_check_elapsed = 0.0
+		_wander_check_position = global_position
 	_restart_wander_timer()
 
 func _on_detection_body_entered(body: Node2D) -> void:

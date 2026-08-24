@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cyy3bfo4y6xni"
-path="res://.godot/imported/s.png-645026dc931d8b7a38276b202a1cc9c7.ctex"
+uid="uid://b1vw8jjj7jh0s"
+path="res://.godot/imported/frogger_heal.png-7d93240f10dc4cc03c18b5b2b991c9ed.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects/skills/fire/s.png"
-dest_files=["res://.godot/imported/s.png-645026dc931d8b7a38276b202a1cc9c7.ctex"]
+source_file="res://assets/sprites/enemies/frogger/frogger_heal.png"
+dest_files=["res://.godot/imported/frogger_heal.png-7d93240f10dc4cc03c18b5b2b991c9ed.ctex"]
 
 [params]
 

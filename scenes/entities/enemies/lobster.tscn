@@ -1,6 +1,6 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene format=3 uid="uid://bdmw3mik6rc1g"]
 
-[ext_resource type="Script" path="res://scenes/entities/enemies/slime.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://d3n7uemq80too" path="res://scenes/entities/enemies/slime.gd" id="1_script"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_col"]
 radius = 20.0
@@ -14,45 +14,44 @@ radius = 250.0
 [sub_resource type="CircleShape2D" id="CircleShape2D_hitbox"]
 radius = 26.0
 
-[node name="Lobster" type="CharacterBody2D"]
+[node name="Lobster" type="CharacterBody2D" unique_id=773810052]
 collision_layer = 4
 script = ExtResource("1_script")
 
-[node name="Sprite2D" type="AnimatedSprite2D" parent="."]
+[node name="Sprite2D" type="AnimatedSprite2D" parent="." unique_id=682606050]
 position = Vector2(0, -24)
 scale = Vector2(0.4, 0.4)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=401157409]
 shape = SubResource("CircleShape2D_col")
 
-[node name="HurtBox" type="Area2D" parent="."]
+[node name="HurtBox" type="Area2D" parent="." unique_id=1419252764]
 collision_layer = 4
 collision_mask = 0
 
-[node name="HurtBoxShape" type="CollisionShape2D" parent="HurtBox"]
+[node name="HurtBoxShape" type="CollisionShape2D" parent="HurtBox" unique_id=1502258568]
 position = Vector2(0, -24)
 shape = SubResource("CircleShape2D_hurtbox")
 
-[node name="WanderTimer" type="Timer" parent="."]
+[node name="WanderTimer" type="Timer" parent="." unique_id=1517637665]
 
-[node name="DetectionArea" type="Area2D" parent="."]
-visible = false
+[node name="DetectionArea" type="Area2D" parent="." unique_id=2067449391]
 collision_layer = 0
 collision_mask = 2
 
-[node name="DetectionShape" type="CollisionShape2D" parent="DetectionArea"]
+[node name="DetectionShape" type="CollisionShape2D" parent="DetectionArea" unique_id=442599274]
+visible = false
 shape = SubResource("CircleShape2D_detect")
 
-[node name="HitBox" type="Area2D" parent="."]
-visible = false
+[node name="HitBox" type="Area2D" parent="." unique_id=1312284730]
 collision_layer = 0
 collision_mask = 2
 monitoring = false
 
-[node name="HitBoxShape" type="CollisionShape2D" parent="HitBox"]
+[node name="HitBoxShape" type="CollisionShape2D" parent="HitBox" unique_id=514318535]
 shape = SubResource("CircleShape2D_hitbox")
 
-[node name="HealthBar" type="ProgressBar" parent="."]
+[node name="HealthBar" type="ProgressBar" parent="." unique_id=1068532430]
 offset_left = -25.0
 offset_top = -63.0
 offset_right = 25.0
