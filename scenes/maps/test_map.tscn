@@ -454,7 +454,7 @@ enemy_scene = ExtResource("14_slime")
 enemy_data = ExtResource("22_data_blue")
 
 [node name="SpawnSlimeBlue3" type="Marker2D" parent="." unique_id=1682343278]
-position = Vector2(615, 1064)
+position = Vector2(584, 981)
 script = ExtResource("33_spawn")
 enemy_scene = ExtResource("14_slime")
 enemy_data = ExtResource("22_data_blue")
@@ -466,13 +466,7 @@ enemy_scene = ExtResource("14_slime")
 enemy_data = ExtResource("20_data_green")
 
 [node name="SpawnSlimeGreen4" type="Marker2D" parent="." unique_id=676821496]
-position = Vector2(156, 1071)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("14_slime")
-enemy_data = ExtResource("20_data_green")
-
-[node name="SpawnSlimeGreen5" type="Marker2D" parent="." unique_id=1578024044]
-position = Vector2(190, 475)
+position = Vector2(296, 1074)
 script = ExtResource("33_spawn")
 enemy_scene = ExtResource("14_slime")
 enemy_data = ExtResource("20_data_green")
@@ -490,13 +484,13 @@ enemy_scene = ExtResource("14_slime")
 enemy_data = ExtResource("20_data_green")
 
 [node name="SpawnSlimeGreen2" type="Marker2D" parent="." unique_id=497257407]
-position = Vector2(846, 1023)
+position = Vector2(1126, 1031)
 script = ExtResource("33_spawn")
 enemy_scene = ExtResource("14_slime")
 enemy_data = ExtResource("20_data_green")
 
 [node name="SpawnSlimeGreen3" type="Marker2D" parent="." unique_id=702251001]
-position = Vector2(846, 1023)
+position = Vector2(1003, 1009)
 script = ExtResource("33_spawn")
 enemy_scene = ExtResource("14_slime")
 enemy_data = ExtResource("20_data_green")
@@ -520,7 +514,7 @@ enemy_scene = ExtResource("14_slime")
 enemy_data = ExtResource("26_data_yellow")
 
 [node name="SpawnSlimeYellow4" type="Marker2D" parent="." unique_id=196115470]
-position = Vector2(469, 890)
+position = Vector2(409, 987)
 script = ExtResource("33_spawn")
 enemy_scene = ExtResource("14_slime")
 enemy_data = ExtResource("26_data_yellow")
@@ -538,7 +532,7 @@ enemy_scene = ExtResource("14_slime")
 enemy_data = ExtResource("26_data_yellow")
 
 [node name="SpawnMushroom" type="Marker2D" parent="." unique_id=475935831]
-position = Vector2(1514, 579)
+position = Vector2(232, 571)
 script = ExtResource("33_spawn")
 enemy_scene = ExtResource("27_mushroom")
 enemy_data = ExtResource("28_data_mushroom")

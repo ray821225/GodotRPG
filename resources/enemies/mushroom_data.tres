@@ -11,6 +11,7 @@ faces_left_by_default = true
 speed = 60
 chase_speed = 110
 use_detection = false
+leash_range = 600.0
 attack_range = 40.0
 attack_speed = 1.0
 max_hp = 80

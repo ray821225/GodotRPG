@@ -170,7 +170,7 @@ func chase_loop() -> void:
 	var dir: Vector2 = (player.global_position - global_position)
 	var dist: float = dir.length()
 
-	if dist > detection_range * 1.5 or global_position.distance_to(spawn_position) > leash_range:
+	if global_position.distance_to(spawn_position) > leash_range:
 		_give_up_chase()
 		return
 
