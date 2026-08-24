@@ -15,6 +15,7 @@ const COUNTER_EFFECT = preload("res://scenes/effects/counter_effect.tscn")
 const FIREBALL = preload("res://scenes/skills/fireball.tscn")
 const ICE_SPIKE = preload("res://scenes/skills/icespike.tscn")
 const RoleData = preload("res://scenes/entities/player/role_data.gd")
+const DamageMath = preload("res://scenes/entities/damage_math.gd")
 const ATTACK_ANIM_LENGTH: float = 0.6
 const ATTACK_LOCK_DURATION: float = 0.3
 const ATTACK_HIT_DELAY: float = 0.12
@@ -287,9 +288,10 @@ func take_damage(amount: int, attacker: Node2D = null) -> void:
 		if amount <= 0:
 			return
 
-	hp -= amount
+	var final_damage: int = DamageMath.calculate(amount, def)
+	hp -= final_damage
 	health_bar.value = hp
-	_spawn_damage_number(amount)
+	_spawn_damage_number(final_damage)
 	_flash_damage()
 	if attacker:
 		apply_knockback(global_position - attacker.global_position, KNOCKBACK_ON_HIT)

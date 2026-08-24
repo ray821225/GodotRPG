@@ -29,6 +29,10 @@ extends Resource
 @export var attack_speed: float = 0.8
 @export var max_hp: int = 60
 @export var attack_damage: int = 8
+## 物理/魔法防禦，套用比例遞減公式（見 damage_math.gd）。玩家近戰打的是物理，
+## 火球/冰錐等技能打的是魔法，依 DamageType 選對應這兩個值。
+@export var defense: float = 10.0
+@export var magic_defense: float = 10.0
 
 @export_category("Wander")
 @export var wander_range: float = 100.0

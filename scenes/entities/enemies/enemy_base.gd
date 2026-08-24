@@ -15,6 +15,7 @@ enum State {
 
 const DAMAGE_NUMBER = preload("res://scenes/ui/damage_number.tscn")
 const EnemyData = preload("res://scenes/entities/enemies/enemy_data.gd")
+const DamageMath = preload("res://scenes/entities/damage_math.gd")
 const KNOCKBACK_ON_HIT: float = 14.0
 const WANDER_STUCK_CHECK_INTERVAL: float = 0.4
 const WANDER_STUCK_MIN_DISTANCE: float = 12.0
@@ -34,6 +35,8 @@ var attack_align_tolerance: float = 40.0
 var attack_speed: float
 var max_hp: int
 var attack_damage: int
+var defense: float = 10.0
+var magic_defense: float = 10.0
 var wander_range: float
 var wander_interval: float
 var respawn_delay: float
@@ -90,6 +93,8 @@ func _apply_data() -> void:
 	attack_speed = data.attack_speed
 	max_hp = data.max_hp
 	attack_damage = data.attack_damage
+	defense = data.defense
+	magic_defense = data.magic_defense
 	wander_range = data.wander_range
 	wander_interval = data.wander_interval
 	respawn_delay = data.respawn_delay
@@ -239,10 +244,12 @@ func _stop_attacking() -> void:
 func take_damage(amount: int, type: DamageNumber.DamageType = DamageNumber.DamageType.PHYSICAL, attacker: Node2D = null) -> void:
 	if state == State.DEAD:
 		return
-	hp -= amount
+	var def_value: float = defense if type == DamageNumber.DamageType.PHYSICAL else magic_defense
+	var final_damage: int = DamageMath.calculate(amount, def_value)
+	hp -= final_damage
 	health_bar.visible = true
 	health_bar.value = hp
-	_spawn_damage_number(amount, type)
+	_spawn_damage_number(final_damage, type)
 	_flash_damage()
 	if attacker:
 		apply_knockback(global_position - attacker.global_position, KNOCKBACK_ON_HIT)
