@@ -194,6 +194,9 @@ graph_offset = Vector2(-231, -13.518494)
 [sub_resource type="CircleShape2D" id="CircleShape2D_hitbox"]
 radius = 30.0
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_interact"]
+radius = 55.0
+
 [node name="Player" type="CharacterBody2D" unique_id=1685297004]
 collision_layer = 2
 script = ExtResource("1_635qg")
@@ -236,6 +239,13 @@ monitoring = false
 [node name="HitBoxShape" type="CollisionShape2D" parent="HitBox" unique_id=112340105]
 shape = SubResource("CircleShape2D_hitbox")
 
+[node name="InteractArea" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 16
+
+[node name="InteractShape" type="CollisionShape2D" parent="InteractArea"]
+shape = SubResource("CircleShape2D_interact")
+
 [node name="HUD" type="CanvasLayer" parent="." unique_id=848099133]
 
 [node name="HUDControl" type="Control" parent="HUD" unique_id=2021411895]
@@ -254,3 +264,11 @@ offset_top = 10.0
 offset_right = 210.0
 offset_bottom = 32.0
 show_percentage = false
+
+[node name="GoldLabel" type="Label" parent="HUD/HUDControl"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 38.0
+offset_right = 210.0
+offset_bottom = 60.0
+text = "Gold: 0"

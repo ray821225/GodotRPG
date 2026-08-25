@@ -61,11 +61,16 @@ var block_success: bool = false
 var can_counter: bool = false
 var fireball_ready: bool = true
 var icespike_ready: bool = true
+var gold: int = 0
+## 除了金幣以外的道具（例如肉）先單純計數，背包系統之後再串。
+var inventory: Dictionary = {}
 
 @onready var animation_tree: AnimationTree = $AnimationTree
 @onready var animation_playback: AnimationNodeStateMachinePlayback = $AnimationTree["parameters/playback"]
 @onready var hit_box: Area2D = $HitBox
+@onready var interact_area: Area2D = $InteractArea
 @onready var health_bar: ProgressBar = $HUD/HUDControl/HPBar
+@onready var gold_label: Label = $HUD/HUDControl/GoldLabel
 
 func _ready() -> void:
 	_apply_role_stats()
@@ -111,6 +116,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		cast_fireball()
 	elif event.is_action_pressed("skill_icespike"):
 		cast_icespike()
+	elif event.is_action_pressed("interact"):
+		_try_interact()
 
 func _physics_process(_delta: float) -> void:
 	if state == State.ATTACK or state == State.DEAD:
@@ -273,7 +280,9 @@ func deal_damage(is_counter: bool = false) -> void:
 func take_damage(amount: int, attacker: Node2D = null) -> void:
 	if state == State.DEAD:
 		return
+	var blocked: bool = false
 	if is_parry_active:
+		blocked = true
 		block_success = true
 		_spawn_block_effect()
 		is_parry_active = false
@@ -293,7 +302,7 @@ func take_damage(amount: int, attacker: Node2D = null) -> void:
 	health_bar.value = hp
 	_spawn_damage_number(final_damage)
 	_flash_damage()
-	if attacker:
+	if attacker and not blocked:
 		apply_knockback(global_position - attacker.global_position, KNOCKBACK_ON_HIT)
 	if hp <= 0:
 		die()
@@ -305,6 +314,20 @@ func apply_knockback(direction: Vector2, strength: float) -> void:
 	var target_pos: Vector2 = global_position + direction.normalized() * strength
 	var tween = create_tween()
 	tween.tween_property(self, "global_position", target_pos, 0.12).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+## 按互動鍵時呼叫：對 InteractArea 範圍內所有掉落物一次拾取（怪物可能一次掉好幾個）。
+func _try_interact() -> void:
+	for area in interact_area.get_overlapping_areas():
+		if area.has_method("collect"):
+			area.collect(self)
+
+## 拾取契約：任何 Pickup 撿起來都呼叫這個方法。coin 直接加金幣，其他道具先進 inventory 計數。
+func collect_item(item_id: String, amount: int) -> void:
+	if item_id == "coin":
+		gold += amount
+		gold_label.text = "Gold: %d" % gold
+	else:
+		inventory[item_id] = inventory.get(item_id, 0) + amount
 
 func _open_counter_window() -> void:
 	can_counter = true

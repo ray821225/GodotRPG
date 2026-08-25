@@ -14,6 +14,7 @@ enum State {
 }
 
 const DAMAGE_NUMBER = preload("res://scenes/ui/damage_number.tscn")
+const PICKUP = preload("res://scenes/items/pickup.tscn")
 const EnemyData = preload("res://scenes/entities/enemies/enemy_data.gd")
 const DamageMath = preload("res://scenes/entities/damage_math.gd")
 const KNOCKBACK_ON_HIT: float = 14.0
@@ -288,6 +289,7 @@ func die() -> void:
 	detection_area.monitoring = false
 	health_bar.visible = false
 	collision_shape.set_deferred("disabled", true)
+	_drop_loot()
 
 	# 有些素材還沒補死亡動畫（例如大青蛙），沒有就直接停頓一下淡出，不要整個爆錯誤。
 	if sprite.sprite_frames.has_animation("death"):
@@ -299,6 +301,34 @@ func die() -> void:
 
 	await get_tree().create_timer(respawn_delay).timeout
 	_respawn()
+
+## 死亡時依 data.loot_table 加權隨機掉一個東西（機率由 loot_drop_chance 決定），
+## 生成在死亡位置附近的小範圍隨機偏移，避免同一格重疊的掉落物完全疊在一起。
+func _drop_loot() -> void:
+	if data == null or data.loot_table.is_empty():
+		return
+	if randf() > data.loot_drop_chance:
+		return
+	var loot: EnemyData.LootData = _pick_weighted_loot()
+	if loot == null:
+		return
+	var pickup = PICKUP.instantiate()
+	get_tree().current_scene.add_child(pickup)
+	pickup.global_position = global_position + Vector2(randf_range(-12.0, 12.0), randf_range(-12.0, 12.0))
+	pickup.setup(loot)
+
+func _pick_weighted_loot() -> EnemyData.LootData:
+	var total_weight: float = 0.0
+	for entry in data.loot_table:
+		total_weight += entry.weight
+	if total_weight <= 0.0:
+		return null
+	var roll: float = randf() * total_weight
+	for entry in data.loot_table:
+		roll -= entry.weight
+		if roll <= 0.0:
+			return entry
+	return data.loot_table[-1]
 
 func _respawn() -> void:
 	global_position = spawn_position
