@@ -21,6 +21,11 @@ const ATTACK_LOCK_DURATION: float = 0.3
 const ATTACK_HIT_DELAY: float = 0.12
 const KNOCKBACK_ON_HIT: float = 10.0
 const KNOCKBACK_ON_BLOCK: float = 22.0
+const CHARGE_SLASH_TEXTURE_BIG = preload("res://assets/effects/skills/generic/charg_big.png")
+const CHARGE_SLASH_FRAME_COUNT: int = 12
+const CHARGE_SLASH_RELEASE_DURATION: float = 0.25
+const CHARGE_SLASH_SCALE_START: float = 0.5
+const CLICK_HOLD_THRESHOLD: float = 0.15
 
 @export_category("Role")
 @export var role: String = "Knight"
@@ -45,6 +50,9 @@ const KNOCKBACK_ON_BLOCK: float = 22.0
 @export var icespike_damage: int = 25
 @export var icespike_speed: float = 450.0
 @export var icespike_cooldown: float = 1.0
+@export var charge_slash_damage_multiplier: float = 50
+@export var charge_slash_charge_time: float = 0.5
+@export var charge_slash_move_speed_multiplier: float = 0.4
 
 var state: State = State.IDLE
 var move_direction: Vector2 = Vector2(0, 0)
@@ -61,6 +69,10 @@ var block_success: bool = false
 var can_counter: bool = false
 var fireball_ready: bool = true
 var icespike_ready: bool = true
+var is_charging_slash: bool = false
+var _charge_slash_ready: bool = false
+var _charge_scale_tween: Tween
+var _left_click_claimed_by_charge: bool = false
 var gold: int = 0
 ## 除了金幣以外的道具（例如肉）先單純計數，背包系統之後再串。
 var inventory: Dictionary = {}
@@ -71,6 +83,7 @@ var inventory: Dictionary = {}
 @onready var interact_area: Area2D = $InteractArea
 @onready var health_bar: ProgressBar = $HUD/HUDControl/HPBar
 @onready var gold_label: Label = $HUD/HUDControl/GoldLabel
+@onready var charge_effect: AnimatedSprite2D = $ChargeEffect
 
 func _ready() -> void:
 	_apply_role_stats()
@@ -81,6 +94,26 @@ func _ready() -> void:
 	hit_box.monitoring = false
 	animation_tree.active = true
 	_style_health_bar()
+	charge_effect.sprite_frames = _build_charge_sprite_frames()
+
+## 把 charg_big 這張橫向排列的蓄力精靈圖切成 CHARGE_SLASH_FRAME_COUNT 格，組成 AnimatedSprite2D
+## 可播放的 charge 動畫（時長對齊 charge_slash_charge_time，設為 loop 讓蓄滿等待放開期間不會停在最後一偵）。
+## 「變大」的效果改由 charge_effect 的 scale 從 CHARGE_SLASH_SCALE_START 漸變回 1.0 來表現。
+func _build_charge_sprite_frames() -> SpriteFrames:
+	var frames := SpriteFrames.new()
+	_add_charge_animation(frames, &"charge", CHARGE_SLASH_TEXTURE_BIG, charge_slash_charge_time, true)
+	return frames
+
+func _add_charge_animation(frames: SpriteFrames, anim_name: StringName, sheet: Texture2D, duration: float, loop: bool = false) -> void:
+	frames.add_animation(anim_name)
+	frames.set_animation_speed(anim_name, CHARGE_SLASH_FRAME_COUNT / duration)
+	frames.set_animation_loop(anim_name, loop)
+	var frame_size: Vector2 = sheet.get_size() / Vector2(CHARGE_SLASH_FRAME_COUNT, 1)
+	for i in range(CHARGE_SLASH_FRAME_COUNT):
+		var atlas := AtlasTexture.new()
+		atlas.atlas = sheet
+		atlas.region = Rect2(frame_size.x * i, 0, frame_size.x, frame_size.y)
+		frames.add_frame(anim_name, atlas)
 
 func _apply_role_stats() -> void:
 	var stats: Dictionary = RoleData.get_stats(role)
@@ -108,8 +141,11 @@ func _style_health_bar() -> void:
 	health_bar.add_theme_stylebox_override("background", bg)
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		attack()
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			_on_left_click_pressed()
+		else:
+			_on_left_click_released()
 	elif event.is_action_pressed("block"):
 		try_block()
 	elif event.is_action_pressed("skill_fireball"):
@@ -126,7 +162,7 @@ func _physics_process(_delta: float) -> void:
 		movement_loop()
 
 func try_block() -> void:
-	if not block_ready or state == State.ATTACK or state == State.DEAD:
+	if not block_ready or state == State.ATTACK or state == State.DEAD or is_charging_slash:
 		return
 	block_ready = false
 	is_parry_active = true
@@ -199,7 +235,8 @@ func cast_icespike() -> void:
 func movement_loop() -> void:
 	move_direction.x = int(Input.is_action_pressed("right")) - int(Input.is_action_pressed("left"))
 	move_direction.y = int(Input.is_action_pressed("down")) - int(Input.is_action_pressed("up"))
-	var motion: Vector2 = move_direction.normalized() * speed
+	var speed_multiplier: float = charge_slash_move_speed_multiplier if is_charging_slash else 1.0
+	var motion: Vector2 = move_direction.normalized() * speed * speed_multiplier
 	set_velocity(motion)
 	move_and_slide()
 
@@ -227,8 +264,33 @@ func update_animation() -> void:
 		State.BLOCK:
 			animation_playback.travel("idle")
 
-func attack() -> void:
+## 左鍵點一下算普攻、按住算蓄力斬：按下先不出手，等 CLICK_HOLD_THRESHOLD 這麼久，
+## 這段時間內放開就是單純點擊 → attack()；還按著就判定為長按 → 進入蓄力（由 _left_click_claimed_by_charge 標記，
+## 放開時 _on_left_click_released() 才不會又補一次 attack()）。
+func _on_left_click_pressed() -> void:
+	_left_click_claimed_by_charge = false
 	if not attack_ready or state == State.ATTACK or state == State.DEAD:
+		return
+	await get_tree().create_timer(CLICK_HOLD_THRESHOLD).timeout
+	if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		return
+	if not attack_ready or state == State.ATTACK or state == State.DEAD:
+		return
+	_left_click_claimed_by_charge = true
+	start_charge_slash()
+
+func _on_left_click_released() -> void:
+	if is_charging_slash:
+		if _charge_slash_ready:
+			_fire_charge_slash()
+		else:
+			_cancel_charge_slash()
+		return
+	if not _left_click_claimed_by_charge:
+		attack()
+
+func attack() -> void:
+	if not attack_ready or state == State.ATTACK or state == State.DEAD or is_charging_slash:
 		return
 	if state == State.BLOCK:
 		_cancel_block()
@@ -257,13 +319,85 @@ func attack() -> void:
 	await get_tree().create_timer(maxf(attack_speed - ATTACK_LOCK_DURATION, 0.0)).timeout
 	attack_ready = true
 
-func deal_damage(is_counter: bool = false) -> void:
+## 蓄力斬：按住左鍵超過 CLICK_HOLD_THRESHOLD 開始蓄力，charge_effect 播放 charge 動畫（大圖，loop，
+## 一輪時長對齊 charge_slash_charge_time），移動速度依 charge_slash_move_speed_multiplier 變慢；同時 scale 從
+## CHARGE_SLASH_SCALE_START（縮小版）漸變回 1.0（正常大小），快蓄滿時視覺上會明顯變大。
+## 蓄滿後不會自動出招，而是進入「蓄力完成」狀態等待放開左鍵，放開的當下才朝放開瞬間的滑鼠方向揮出，
+## 傷害為 attack_damage 的 charge_slash_damage_multiplier 倍。蓄力未滿就放開左鍵則直接取消，不會出招。
+func start_charge_slash() -> void:
+	if not attack_ready or state == State.ATTACK or state == State.DEAD or is_charging_slash:
+		return
+	if state == State.BLOCK:
+		_cancel_block()
+	is_charging_slash = true
+	_charge_slash_ready = false
+	charge_effect.modulate.a = 1.0
+	charge_effect.visible = true
+	charge_effect.scale = Vector2.ONE * CHARGE_SLASH_SCALE_START
+	charge_effect.play(&"charge")
+
+	if _charge_scale_tween:
+		_charge_scale_tween.kill()
+	_charge_scale_tween = create_tween()
+	_charge_scale_tween.tween_property(charge_effect, "scale", Vector2.ONE, charge_slash_charge_time).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
+
+	await get_tree().create_timer(charge_slash_charge_time).timeout
+	if not is_charging_slash:
+		return
+	_charge_slash_ready = true
+
+func _cancel_charge_slash() -> void:
+	if not is_charging_slash:
+		return
+	is_charging_slash = false
+	_charge_slash_ready = false
+	if _charge_scale_tween:
+		_charge_scale_tween.kill()
+	charge_effect.stop()
+	charge_effect.visible = false
+
+func _fire_charge_slash() -> void:
+	is_charging_slash = false
+	_charge_slash_ready = false
+	if _charge_scale_tween:
+		_charge_scale_tween.kill()
+	charge_effect.scale = Vector2.ONE
+
+	attack_ready = false
+	state = State.ATTACK
+
+	var mouse_pos: Vector2 = get_global_mouse_position()
+	var attack_dir: Vector2 = (mouse_pos - global_position).normalized()
+	$Sprite2D.flip_h = attack_dir.x < 0 and abs(attack_dir.x) >= abs(attack_dir.y)
+	animation_tree.set("parameters/attack/BlendSpace2D/blend_position", attack_dir)
+	animation_tree.set("parameters/attack/TimeScale/scale", ATTACK_ANIM_LENGTH / ATTACK_LOCK_DURATION)
+	update_animation()
+
+	hit_box.position = attack_dir * 40
+	hit_box.monitoring = true
+
+	var fade_tween := create_tween()
+	fade_tween.tween_interval(CHARGE_SLASH_RELEASE_DURATION)
+	fade_tween.tween_property(charge_effect, "modulate:a", 0.0, 0.15)
+	fade_tween.tween_callback(func() -> void: charge_effect.visible = false)
+
+	await get_tree().create_timer(ATTACK_HIT_DELAY).timeout
+	deal_damage(false, charge_slash_damage_multiplier)
+
+	await get_tree().create_timer(ATTACK_LOCK_DURATION - ATTACK_HIT_DELAY).timeout
+	hit_box.monitoring = false
+	state = State.IDLE
+
+	await get_tree().create_timer(maxf(attack_speed - ATTACK_LOCK_DURATION, 0.0)).timeout
+	attack_ready = true
+
+func deal_damage(is_counter: bool = false, damage_multiplier: float = 1.0) -> void:
 	if not hit_box.monitoring:
 		return
 	var areas = hit_box.get_overlapping_areas()
-	var damage: int = attack_damage
+	var damage: int = int(round(attack_damage * damage_multiplier))
 	if is_counter:
-		damage = int(round(attack_damage * (1.0 + counter_damage_bonus)))
+		damage = int(round(damage * (1.0 + counter_damage_bonus)))
 
 	var hit_any: bool = false
 	var last_target: Node2D = null
@@ -360,6 +494,12 @@ func die() -> void:
 	state = State.DEAD
 	$Sprite2D.visible = false
 	hit_box.monitoring = false
+	is_charging_slash = false
+	_charge_slash_ready = false
+	if _charge_scale_tween:
+		_charge_scale_tween.kill()
+	charge_effect.stop()
+	charge_effect.visible = false
 	$HurtBox.collision_layer = 0
 	animation_tree.active = false
 	$CollisionShape2D.set_deferred("disabled", true)

@@ -314,8 +314,9 @@ func _drop_loot() -> void:
 		return
 	var pickup = PICKUP.instantiate()
 	get_tree().current_scene.add_child(pickup)
-	pickup.global_position = global_position + Vector2(randf_range(-12.0, 12.0), randf_range(-12.0, 12.0))
 	pickup.setup(loot)
+	var drop_offset: Vector2 = Vector2(randf_range(-12.0, 12.0), randf_range(-12.0, 12.0))
+	pickup.play_drop_animation(global_position, global_position + drop_offset)
 
 func _pick_weighted_loot() -> EnemyData.LootData:
 	var total_weight: float = 0.0
