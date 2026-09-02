@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/effects/dust_effect.gd" id="1_de"]
+[ext_resource type="Texture2D" path="res://assets/effects/Dust_01.png" id="2_dust"]
+
+[node name="DustEffect" type="Node2D"]
+script = ExtResource("1_de")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_dust")
+hframes = 8
+vframes = 1
+frame = 0

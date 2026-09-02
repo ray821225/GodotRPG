@@ -66,4 +66,4 @@ func deal_damage() -> void:
 	for area in areas:
 		var target = area.get_parent()
 		if target.has_method("take_damage"):
-			target.take_damage(attack_damage, self)
+			target.take_damage(attack_damage, DamageNumber.DamageType.PHYSICAL, self)

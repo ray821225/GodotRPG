@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/effects/explosion_effect.gd" id="1_ee"]
+[ext_resource type="Texture2D" path="res://assets/effects/Explosion_02.png" id="2_explosion"]
+
+[node name="ExplosionEffect" type="Node2D"]
+script = ExtResource("1_ee")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("2_explosion")
+hframes = 10
+vframes = 1
+frame = 0

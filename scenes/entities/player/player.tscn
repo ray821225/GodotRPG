@@ -208,21 +208,17 @@ hframes = 6
 vframes = 8
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2051218836]
-visible = false
 shape = SubResource("CircleShape2D_1hmtu")
 
 [node name="HurtBox" type="Area2D" parent="." unique_id=2051218837]
-visible = false
 collision_layer = 2
 collision_mask = 0
 
 [node name="HurtBoxShape" type="CollisionShape2D" parent="HurtBox" unique_id=2051218838]
-visible = false
 position = Vector2(0, -34)
 shape = SubResource("CircleShape2D_hurtbox")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1235886156]
-visible = false
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=316850103]
 libraries/ = SubResource("AnimationLibrary_main")
@@ -248,13 +244,11 @@ collision_layer = 0
 collision_mask = 16
 
 [node name="InteractShape" type="CollisionShape2D" parent="InteractArea" unique_id=1664544060]
-visible = false
 shape = SubResource("CircleShape2D_interact")
 
 [node name="HUD" type="CanvasLayer" parent="." unique_id=848099133]
 
 [node name="HUDControl" type="Control" parent="HUD" unique_id=2021411895]
-visible = false
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

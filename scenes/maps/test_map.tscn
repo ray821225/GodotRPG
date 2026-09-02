@@ -15,6 +15,8 @@
 [ext_resource type="PackedScene" path="res://scenes/entities/enemies/mushroom.tscn" id="27_mushroom"]
 [ext_resource type="Resource" uid="uid://ckgabhr70mgem" path="res://resources/enemies/mushroom_data.tres" id="28_data_mushroom"]
 [ext_resource type="Script" uid="uid://bfnxt2ypji7fg" path="res://scenes/entities/enemies/enemy_spawn_point.gd" id="33_spawn"]
+[ext_resource type="PackedScene" path="res://scenes/entities/enemies/goblin_bomber.tscn" id="40_goblin_bomber"]
+[ext_resource type="Resource" path="res://resources/enemies/goblin_bomber_data.tres" id="41_data_goblin_bomber"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_38prr"]
 texture = ExtResource("1_2s55i")
@@ -572,3 +574,21 @@ position = Vector2(1550, 1009)
 script = ExtResource("33_spawn")
 enemy_scene = ExtResource("27_mushroom")
 enemy_data = ExtResource("28_data_mushroom")
+
+[node name="SpawnGoblinBomber" type="Marker2D" parent="."]
+position = Vector2(700, 700)
+script = ExtResource("33_spawn")
+enemy_scene = ExtResource("40_goblin_bomber")
+enemy_data = ExtResource("41_data_goblin_bomber")
+
+[node name="SpawnGoblinBomber2" type="Marker2D" parent="."]
+position = Vector2(1450, 550)
+script = ExtResource("33_spawn")
+enemy_scene = ExtResource("40_goblin_bomber")
+enemy_data = ExtResource("41_data_goblin_bomber")
+
+[node name="SpawnGoblinBomber3" type="Marker2D" parent="."]
+position = Vector2(350, 850)
+script = ExtResource("33_spawn")
+enemy_scene = ExtResource("40_goblin_bomber")
+enemy_data = ExtResource("41_data_goblin_bomber")

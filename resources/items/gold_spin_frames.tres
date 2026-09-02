@@ -1,0 +1,60 @@
+[gd_resource type="SpriteFrames" load_steps=9 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/ui/elements/coins/gold_spin.png" id="1_gold_spin"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_spin_0"]
+atlas = ExtResource("1_gold_spin")
+region = Rect2(0, 0, 25, 25)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_spin_1"]
+atlas = ExtResource("1_gold_spin")
+region = Rect2(25, 0, 25, 25)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_spin_2"]
+atlas = ExtResource("1_gold_spin")
+region = Rect2(50, 0, 25, 25)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_spin_3"]
+atlas = ExtResource("1_gold_spin")
+region = Rect2(75, 0, 25, 25)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_spin_4"]
+atlas = ExtResource("1_gold_spin")
+region = Rect2(100, 0, 25, 25)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_spin_5"]
+atlas = ExtResource("1_gold_spin")
+region = Rect2(125, 0, 25, 25)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_spin_6"]
+atlas = ExtResource("1_gold_spin")
+region = Rect2(150, 0, 25, 25)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_spin_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_spin_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_spin_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_spin_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_spin_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_spin_5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_spin_6")
+}],
+"loop": true,
+"name": &"spin",
+"speed": 8.0
+}]

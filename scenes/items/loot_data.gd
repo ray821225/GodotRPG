@@ -5,6 +5,8 @@ extends Resource
 
 @export var item_id: String = "coin"
 @export var texture: Texture2D
+## 有填的話優先用這個播放動畫（例如金幣的旋轉效果），沒填才 fallback 用上面的靜態 texture。
+@export var sprite_frames: SpriteFrames
 @export var amount: int = 1
 ## 加權隨機抽選用：權重越高越常掉落，數值只有相對比例有意義，不用總和為 1。
 @export var weight: float = 1.0

@@ -16,12 +16,20 @@ var amount: int = 0
 var _collected: bool = false
 
 @onready var sprite: Sprite2D = $Sprite2D
+@onready var anim_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 
+## 有 sprite_frames（例如金幣的旋轉動畫）就播動畫，沒有就照舊用靜態 texture。
 func setup(loot: LootData) -> void:
 	item_id = loot.item_id
 	amount = loot.amount
-	sprite.texture = loot.texture
+	if loot.sprite_frames:
+		anim_sprite.sprite_frames = loot.sprite_frames
+		anim_sprite.play(loot.sprite_frames.get_animation_names()[0])
+		anim_sprite.visible = true
+		sprite.visible = false
+	else:
+		sprite.texture = loot.texture
 
 ## 掉落動畫：從怪物身上的 start_pos 為起點，縮放從 0 變大、邊旋轉邊飛到地上的 end_pos，
 ## 飛行途中先關掉碰撞判定，避免玩家在半空中就撿到。

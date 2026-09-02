@@ -15,6 +15,7 @@ enum State {
 
 const DAMAGE_NUMBER = preload("res://scenes/ui/damage_number.tscn")
 const PICKUP = preload("res://scenes/items/pickup.tscn")
+const DUST_EFFECT = preload("res://scenes/effects/dust_effect.tscn")
 const EnemyData = preload("res://scenes/entities/enemies/enemy_data.gd")
 const DamageMath = preload("res://scenes/entities/damage_math.gd")
 const KNOCKBACK_ON_HIT: float = 14.0
@@ -333,6 +334,7 @@ func _pick_weighted_loot() -> EnemyData.LootData:
 
 func _respawn() -> void:
 	global_position = spawn_position
+	_spawn_dust_effect()
 	hp = max_hp
 	health_bar.value = hp
 	wander_target = spawn_position
@@ -345,6 +347,11 @@ func _respawn() -> void:
 	detection_area.monitoring = use_detection
 	sprite.play("idle")
 	_restart_wander_timer()
+
+func _spawn_dust_effect() -> void:
+	var effect = DUST_EFFECT.instantiate()
+	get_tree().current_scene.add_child(effect)
+	effect.global_position = global_position
 
 func update_sprite_direction() -> void:
 	if move_direction.x < -0.01:

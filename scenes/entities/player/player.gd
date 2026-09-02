@@ -411,7 +411,7 @@ func deal_damage(is_counter: bool = false, damage_multiplier: float = 1.0) -> vo
 	if is_counter and hit_any:
 		_spawn_counter_effect(last_target.global_position)
 
-func take_damage(amount: int, attacker: Node2D = null) -> void:
+func take_damage(amount: int, type: DamageNumber.DamageType = DamageNumber.DamageType.PHYSICAL, attacker: Node2D = null) -> void:
 	if state == State.DEAD:
 		return
 	var blocked: bool = false
@@ -424,7 +424,9 @@ func take_damage(amount: int, attacker: Node2D = null) -> void:
 			state = State.IDLE
 			_set_block_visual(false)
 			update_animation()
-		if attacker and attacker.has_method("apply_knockback"):
+		# 只有近戰（物理）攻擊格擋成功才把對方震退：遠程/爆炸傷害來源（例如炸彈客）
+		# 命中當下人可能離很遠，套用震退會變成敵人莫名滑動一下，很奇怪。
+		if type == DamageNumber.DamageType.PHYSICAL and attacker and attacker.has_method("apply_knockback"):
 			attacker.apply_knockback(attacker.global_position - global_position, KNOCKBACK_ON_BLOCK)
 		amount = int(round(amount * (1.0 - block_damage_reduction)))
 		_open_counter_window()
