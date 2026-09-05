@@ -10,6 +10,7 @@ enum State {
 
 const DAMAGE_NUMBER = preload("res://scenes/ui/damage_number.tscn")
 const DEATH_EFFECT = preload("res://scenes/effects/death_effect.tscn")
+const LEVELUP_EFFECT = preload("res://scenes/effects/levelup_effect.tscn")
 const BLOCK_EFFECT = preload("res://scenes/effects/block_effect.tscn")
 const COUNTER_EFFECT = preload("res://scenes/effects/counter_effect.tscn")
 const FIREBALL = preload("res://scenes/skills/fireball.tscn")
@@ -26,6 +27,16 @@ const CHARGE_SLASH_FRAME_COUNT: int = 12
 const CHARGE_SLASH_RELEASE_DURATION: float = 0.25
 const CHARGE_SLASH_SCALE_START: float = 0.5
 const CLICK_HOLD_THRESHOLD: float = 0.15
+
+## ---- 升級經驗值曲線：exp_to_next(n) = EXP_CURVE_BASE * n ^ EXP_CURVE_EXPONENT ----
+## n 為目前等級。之後想調整難度只要改這兩個數字，不用動計算邏輯：
+## - EXP_CURVE_BASE：整條曲線整體平移，數字越大每一級都等比例變難（不影響「前後期差多少」的陡度）。
+## - EXP_CURVE_EXPONENT：曲線陡度，越大後期漲得越誇張、前期幾乎沒感覺。
+## 目前 base=30 / exponent=2.2 是抓「主要練到 50 級」的節奏（之後內容變多可以再往上延伸，
+## 公式本身沒有等級上限）：Lv1→2 需 30 exp，Lv10→11 約 6000，Lv20→21 約 29500，
+## Lv30→31 約 75000，Lv50→51 約 243000。
+const EXP_CURVE_BASE: float = 30.0
+const EXP_CURVE_EXPONENT: float = 2.2
 
 @export_category("Role")
 @export var role: String = "Knight"
@@ -76,6 +87,10 @@ var _left_click_claimed_by_charge: bool = false
 var gold: int = 0
 ## 除了金幣以外的道具（例如肉）先單純計數，背包系統之後再串。
 var inventory: Dictionary = {}
+var level: int = 1
+var exp: int = 0
+## 升到下一級所需經驗值，隨等級變動，_ready() 與每次升級後都會重新計算。
+var exp_to_next: int = 0
 
 @onready var animation_tree: AnimationTree = $AnimationTree
 @onready var animation_playback: AnimationNodeStateMachinePlayback = $AnimationTree["parameters/playback"]
@@ -83,6 +98,7 @@ var inventory: Dictionary = {}
 @onready var interact_area: Area2D = $InteractArea
 @onready var health_bar: ProgressBar = $HUD/HUDControl/HPBar
 @onready var gold_label: Label = $HUD/HUDControl/GoldLabel
+@onready var exp_label: Label = $HUD/HUDControl/ExpLabel
 @onready var charge_effect: AnimatedSprite2D = $ChargeEffect
 
 func _ready() -> void:
@@ -95,6 +111,8 @@ func _ready() -> void:
 	animation_tree.active = true
 	_style_health_bar()
 	charge_effect.sprite_frames = _build_charge_sprite_frames()
+	exp_to_next = _exp_needed_for_level(level)
+	_update_exp_label()
 
 ## 把 charg_big 這張橫向排列的蓄力精靈圖切成 CHARGE_SLASH_FRAME_COUNT 格，組成 AnimatedSprite2D
 ## 可播放的 charge 動畫（時長對齊 charge_slash_charge_time，設為 loop 讓蓄滿等待放開期間不會停在最後一偵）。
@@ -464,6 +482,34 @@ func collect_item(item_id: String, amount: int) -> void:
 		gold_label.text = "Gold: %d" % gold
 	else:
 		inventory[item_id] = inventory.get(item_id, 0) + amount
+
+func _exp_needed_for_level(n: int) -> int:
+	return int(round(EXP_CURVE_BASE * pow(n, EXP_CURVE_EXPONENT)))
+
+## 怪物死亡時由 enemy_base.gd 呼叫。用 while 而非 if 是因為一次補很多經驗值
+## （例如之後加大量 exp 的道具/任務獎勵）要能一口氣連續升好幾級。
+func gain_exp(amount: int) -> void:
+	exp += amount
+	var leveled_up: bool = false
+	while exp >= exp_to_next:
+		exp -= exp_to_next
+		level += 1
+		exp_to_next = _exp_needed_for_level(level)
+		leveled_up = true
+	_update_exp_label()
+	if leveled_up:
+		_spawn_levelup_effect()
+
+func _update_exp_label() -> void:
+	exp_label.text = "Lv.%d  EXP %d/%d" % [level, exp, exp_to_next]
+
+func _spawn_levelup_effect() -> void:
+	var effect = LEVELUP_EFFECT.instantiate()
+	# 位置一定要在 add_child 之前設定：effect 的 _ready() 是在 add_child 當下同步執行，
+	# 若晚一步才設 global_position，_ready() 裡讀到的會是預設的 (0,0)，飄浮動畫就會從
+	# 原點飄向角色實際位置，離出生點越遠看起來就像飄過頭一路衝到地圖邊界。
+	effect.global_position = global_position + Vector2(0, -40)
+	get_tree().current_scene.add_child(effect)
 
 func _open_counter_window() -> void:
 	can_counter = true

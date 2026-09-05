@@ -1,0 +1,319 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://bucdia057jk3n"]
+
+[ext_resource type="Texture2D" uid="uid://ndlag8qw433q" path="res://assets/effects/levelup.png" id="1_levelup"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_0"]
+atlas = ExtResource("1_levelup")
+region = Rect2(0, 0, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_1"]
+atlas = ExtResource("1_levelup")
+region = Rect2(320, 0, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_2"]
+atlas = ExtResource("1_levelup")
+region = Rect2(640, 0, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_3"]
+atlas = ExtResource("1_levelup")
+region = Rect2(960, 0, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_4"]
+atlas = ExtResource("1_levelup")
+region = Rect2(1280, 0, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_5"]
+atlas = ExtResource("1_levelup")
+region = Rect2(1600, 0, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_6"]
+atlas = ExtResource("1_levelup")
+region = Rect2(0, 128, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_7"]
+atlas = ExtResource("1_levelup")
+region = Rect2(320, 128, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_8"]
+atlas = ExtResource("1_levelup")
+region = Rect2(640, 128, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_9"]
+atlas = ExtResource("1_levelup")
+region = Rect2(960, 128, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_10"]
+atlas = ExtResource("1_levelup")
+region = Rect2(1280, 128, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_11"]
+atlas = ExtResource("1_levelup")
+region = Rect2(1600, 128, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_12"]
+atlas = ExtResource("1_levelup")
+region = Rect2(0, 256, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_13"]
+atlas = ExtResource("1_levelup")
+region = Rect2(320, 256, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_14"]
+atlas = ExtResource("1_levelup")
+region = Rect2(640, 256, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_15"]
+atlas = ExtResource("1_levelup")
+region = Rect2(960, 256, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_16"]
+atlas = ExtResource("1_levelup")
+region = Rect2(1280, 256, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_17"]
+atlas = ExtResource("1_levelup")
+region = Rect2(1600, 256, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_18"]
+atlas = ExtResource("1_levelup")
+region = Rect2(0, 384, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_19"]
+atlas = ExtResource("1_levelup")
+region = Rect2(320, 384, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_20"]
+atlas = ExtResource("1_levelup")
+region = Rect2(640, 384, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_21"]
+atlas = ExtResource("1_levelup")
+region = Rect2(960, 384, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_22"]
+atlas = ExtResource("1_levelup")
+region = Rect2(1280, 384, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_23"]
+atlas = ExtResource("1_levelup")
+region = Rect2(1600, 384, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_24"]
+atlas = ExtResource("1_levelup")
+region = Rect2(0, 512, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_25"]
+atlas = ExtResource("1_levelup")
+region = Rect2(320, 512, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_26"]
+atlas = ExtResource("1_levelup")
+region = Rect2(640, 512, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_27"]
+atlas = ExtResource("1_levelup")
+region = Rect2(960, 512, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_28"]
+atlas = ExtResource("1_levelup")
+region = Rect2(1280, 512, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_29"]
+atlas = ExtResource("1_levelup")
+region = Rect2(1600, 512, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_30"]
+atlas = ExtResource("1_levelup")
+region = Rect2(0, 640, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_31"]
+atlas = ExtResource("1_levelup")
+region = Rect2(320, 640, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_32"]
+atlas = ExtResource("1_levelup")
+region = Rect2(640, 640, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_33"]
+atlas = ExtResource("1_levelup")
+region = Rect2(960, 640, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_34"]
+atlas = ExtResource("1_levelup")
+region = Rect2(1280, 640, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_35"]
+atlas = ExtResource("1_levelup")
+region = Rect2(1600, 640, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_36"]
+atlas = ExtResource("1_levelup")
+region = Rect2(0, 768, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_37"]
+atlas = ExtResource("1_levelup")
+region = Rect2(320, 768, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_38"]
+atlas = ExtResource("1_levelup")
+region = Rect2(640, 768, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_39"]
+atlas = ExtResource("1_levelup")
+region = Rect2(960, 768, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_40"]
+atlas = ExtResource("1_levelup")
+region = Rect2(1280, 768, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_41"]
+atlas = ExtResource("1_levelup")
+region = Rect2(1600, 768, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_42"]
+atlas = ExtResource("1_levelup")
+region = Rect2(0, 896, 320, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_levelup_43"]
+atlas = ExtResource("1_levelup")
+region = Rect2(320, 896, 320, 128)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_9")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_10")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_11")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_12")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_13")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_14")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_15")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_16")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_17")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_18")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_19")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_20")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_21")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_22")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_23")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_24")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_25")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_26")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_27")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_28")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_29")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_30")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_31")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_32")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_33")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_34")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_35")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_36")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_37")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_38")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_39")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_40")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_41")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_42")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_levelup_43")
+}],
+"loop": false,
+"name": &"levelup",
+"speed": 14.0
+}]

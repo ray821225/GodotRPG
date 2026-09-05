@@ -35,6 +35,9 @@ const LootData = preload("res://scenes/items/loot_data.gd")
 ## 火球/冰錐等技能打的是魔法，依 DamageType 選對應這兩個值。
 @export var defense: float = 10.0
 @export var magic_defense: float = 10.0
+## 死亡時給玩家的經驗值，依怪物強度手動配置（跟 loot_table 手動配置的邏輯一致）。
+## 玩家實際升級所需經驗值由 player.gd 的 EXP_CURVE_BASE / EXP_CURVE_EXPONENT 決定。
+@export var exp_reward: int = 5
 
 @export_category("Wander")
 @export var wander_range: float = 100.0

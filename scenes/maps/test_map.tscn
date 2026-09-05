@@ -575,20 +575,20 @@ script = ExtResource("33_spawn")
 enemy_scene = ExtResource("27_mushroom")
 enemy_data = ExtResource("28_data_mushroom")
 
-[node name="SpawnGoblinBomber" type="Marker2D" parent="."]
-position = Vector2(700, 700)
+[node name="SpawnGoblinBomber" type="Marker2D" parent="." unique_id=1384549228]
+position = Vector2(1586, 153)
 script = ExtResource("33_spawn")
 enemy_scene = ExtResource("40_goblin_bomber")
 enemy_data = ExtResource("41_data_goblin_bomber")
 
-[node name="SpawnGoblinBomber2" type="Marker2D" parent="."]
+[node name="SpawnGoblinBomber2" type="Marker2D" parent="." unique_id=624902444]
 position = Vector2(1450, 550)
 script = ExtResource("33_spawn")
 enemy_scene = ExtResource("40_goblin_bomber")
 enemy_data = ExtResource("41_data_goblin_bomber")
 
-[node name="SpawnGoblinBomber3" type="Marker2D" parent="."]
-position = Vector2(350, 850)
+[node name="SpawnGoblinBomber3" type="Marker2D" parent="." unique_id=1167901940]
+position = Vector2(1570, 612)
 script = ExtResource("33_spawn")
 enemy_scene = ExtResource("40_goblin_bomber")
 enemy_data = ExtResource("41_data_goblin_bomber")

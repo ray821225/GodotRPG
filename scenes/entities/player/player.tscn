@@ -273,5 +273,13 @@ offset_right = 210.0
 offset_bottom = 60.0
 text = "Gold: 0"
 
+[node name="ExpLabel" type="Label" parent="HUD/HUDControl" unique_id=1014644436]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 64.0
+offset_right = 210.0
+offset_bottom = 86.0
+text = "Lv.1  EXP 0/30"
+
 [node name="ChargeEffect" type="AnimatedSprite2D" parent="." unique_id=877768041]
 position = Vector2(0, -26)

@@ -284,13 +284,20 @@ func _flash_damage() -> void:
 func die() -> void:
 	state = State.DEAD
 	velocity = Vector2.ZERO
+	# player 此時是最後一個攻擊者（take_damage() 設定），要在歸零前先取出來發經驗值。
+	var killer: CharacterBody2D = player
 	player = null
 	_stop_attacking()
+	if killer and data and killer.has_method("gain_exp"):
+		killer.gain_exp(data.exp_reward)
 	hurt_box.collision_layer = 0
 	detection_area.monitoring = false
 	health_bar.visible = false
 	collision_shape.set_deferred("disabled", true)
-	_drop_loot()
+	# 死亡有可能是在物理查詢 flush 中觸發（例如技能的 area_entered 訊號），這時直接
+	# add_child 一個新的 Area2D（掉落物）會撞到「不能在 flush 中改變物理狀態」的
+	# 引擎限制，所以整個延後到這一幀的物理處理結束後再執行。
+	_drop_loot.call_deferred()
 
 	# 有些素材還沒補死亡動畫（例如大青蛙），沒有就直接停頓一下淡出，不要整個爆錯誤。
 	if sprite.sprite_frames.has_animation("death"):

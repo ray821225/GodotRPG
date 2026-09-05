@@ -1,28 +1,25 @@
-[gd_resource type="Resource" load_steps=3 format=3]
+[gd_resource type="Resource" format=3 uid="uid://dn6qwvxjxw4ue"]
 
-[ext_resource type="Script" path="res://scenes/entities/enemies/ranged_enemy_data.gd" id="1_script"]
-[ext_resource type="SpriteFrames" path="res://resources/enemies/goblin_bomber_frames.tres" id="2_frames"]
+[ext_resource type="Script" uid="uid://yhwndt6uk7nt" path="res://scenes/items/loot_data.gd" id="1_gw0jv"]
+[ext_resource type="Script" uid="uid://tydl1mip61oc" path="res://scenes/entities/enemies/ranged_enemy_data.gd" id="1_script"]
+[ext_resource type="SpriteFrames" uid="uid://cxtx12sx707mg" path="res://resources/enemies/goblin_bomber_frames.tres" id="2_frames"]
+[ext_resource type="Resource" path="res://resources/items/loot_coin.tres" id="2_ptnpf"]
+[ext_resource type="Resource" path="res://resources/items/loot_meat.tres" id="3_lujj5"]
+[ext_resource type="PackedScene" path="res://scenes/entities/projectiles/dynamite.tscn" id="4_nhaqp"]
 
 [resource]
 script = ExtResource("1_script")
-attack_animation = &"attack"
 attack_hit_ratio = 0.5
-throw_speed = 260.0
-throw_min_duration = 0.35
-throw_max_duration = 0.9
-throw_arc_height = 90.0
-throw_offset = 20.0
 display_name = "Goblin Bomber"
 sprite_frames = ExtResource("2_frames")
 speed = 55
 chase_speed = 95
-use_detection = true
 detection_range = 260.0
 leash_range = 380.0
 attack_range = 220.0
 attack_speed = 1.6
 max_hp = 70
 attack_damage = 16
-wander_range = 100.0
+exp_reward = 15
 wander_interval = 3.5
 respawn_delay = 6.0

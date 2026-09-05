@@ -1,6 +1,34 @@
-[gd_resource type="SpriteFrames" load_steps=21 format=3]
+[gd_resource type="SpriteFrames" format=3 uid="uid://cxtx12sx707mg"]
 
-[ext_resource type="Texture2D" path="res://assets/sprites/enemies/TNT_Blue.png" id="1_tnt"]
+[ext_resource type="Texture2D" uid="uid://dqrkm6msnekff" path="res://assets/sprites/enemies/TNT_Blue.png" id="1_tnt"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_attack_0"]
+atlas = ExtResource("1_tnt")
+region = Rect2(0, 384, 192, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_attack_1"]
+atlas = ExtResource("1_tnt")
+region = Rect2(192, 384, 192, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_attack_2"]
+atlas = ExtResource("1_tnt")
+region = Rect2(384, 384, 192, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_attack_3"]
+atlas = ExtResource("1_tnt")
+region = Rect2(576, 384, 192, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_attack_4"]
+atlas = ExtResource("1_tnt")
+region = Rect2(768, 384, 192, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_attack_5"]
+atlas = ExtResource("1_tnt")
+region = Rect2(960, 384, 192, 192)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_attack_6"]
+atlas = ExtResource("1_tnt")
+region = Rect2(1152, 384, 192, 192)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_idle_0"]
 atlas = ExtResource("1_tnt")
@@ -49,34 +77,6 @@ region = Rect2(768, 192, 192, 192)
 [sub_resource type="AtlasTexture" id="AtlasTexture_run_5"]
 atlas = ExtResource("1_tnt")
 region = Rect2(960, 192, 192, 192)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_attack_0"]
-atlas = ExtResource("1_tnt")
-region = Rect2(0, 384, 192, 192)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_attack_1"]
-atlas = ExtResource("1_tnt")
-region = Rect2(192, 384, 192, 192)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_attack_2"]
-atlas = ExtResource("1_tnt")
-region = Rect2(384, 384, 192, 192)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_attack_3"]
-atlas = ExtResource("1_tnt")
-region = Rect2(576, 384, 192, 192)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_attack_4"]
-atlas = ExtResource("1_tnt")
-region = Rect2(768, 384, 192, 192)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_attack_5"]
-atlas = ExtResource("1_tnt")
-region = Rect2(960, 384, 192, 192)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_attack_6"]
-atlas = ExtResource("1_tnt")
-region = Rect2(1152, 384, 192, 192)
 
 [resource]
 animations = [{

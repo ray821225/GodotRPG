@@ -1,6 +1,6 @@
-[gd_resource type="SpriteFrames" load_steps=8 format=3]
+[gd_resource type="SpriteFrames" format=3 uid="uid://blwuegirw1g01"]
 
-[ext_resource type="Texture2D" path="res://assets/sprites/enemies/Dynamite.png" id="1_dynamite"]
+[ext_resource type="Texture2D" uid="uid://ct4xo4dpwhg6" path="res://assets/sprites/enemies/Dynamite.png" id="1_dynamite"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_fuse_0"]
 atlas = ExtResource("1_dynamite")
