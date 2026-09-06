@@ -1,0 +1,14 @@
+[gd_resource type="Resource" format=3 uid="uid://bi7kwvonvdhw4"]
+
+[ext_resource type="Script" uid="uid://yhwndt6uk7nt" path="res://scenes/items/loot_data.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://1jowmgwbxjlm" path="res://assets/ui/elements/Flasks 32x32.png" id="2_sheet"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_flask_red"]
+atlas = ExtResource("2_sheet")
+region = Rect2(224, 0, 32, 32)
+
+[resource]
+script = ExtResource("1_script")
+item_id = "potion_health"
+texture = SubResource("AtlasTexture_flask_red")
+weight = 8.0

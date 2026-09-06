@@ -30,6 +30,7 @@ func setup(loot: LootData) -> void:
 		sprite.visible = false
 	else:
 		sprite.texture = loot.texture
+		sprite.scale = Vector2.ONE * loot.display_scale
 
 ## 掉落動畫：從怪物身上的 start_pos 為起點，縮放從 0 變大、邊旋轉邊飛到地上的 end_pos，
 ## 飛行途中先關掉碰撞判定，避免玩家在半空中就撿到。
@@ -74,5 +75,5 @@ func collect(collector: Node) -> void:
 	tween.set_parallel(true)
 	tween.tween_property(self, "global_position", fly_to, COLLECT_FLY_DURATION).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 	tween.tween_property(self, "scale", Vector2.ZERO, COLLECT_FLY_DURATION).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-	tween.tween_property(sprite, "modulate:a", 0.0, COLLECT_FLY_DURATION)
+	tween.tween_property(self, "modulate:a", 0.0, COLLECT_FLY_DURATION)
 	tween.chain().tween_callback(queue_free)

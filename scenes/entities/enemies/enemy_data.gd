@@ -49,11 +49,13 @@ const LootData = preload("res://scenes/items/loot_data.gd")
 @export_category("Loot")
 ## 死亡時要不要掉落東西的機率（0~1），沒中的話這次死亡不掉落。
 @export var loot_drop_chance: float = 0.7
-## 死亡掉落的候選清單，依 weight 加權隨機抽一個掉落。預設共用全部種類的金幣（1~6）與肉，
-## 個別敵人需要客製掉落表時可以在該敵人的 .tres 裡覆寫這個欄位。
+## 死亡掉落的候選清單，依 weight 加權隨機抽一個掉落。預設共用全部種類的金幣（1~6）與肉、
+## 生命/魔力藥水，個別敵人需要客製掉落表時可以在該敵人的 .tres 裡覆寫這個欄位。
 ## 金幣先只用單一款（gold_spin 旋轉動畫），6 階不同金額的舊版本（loot_coin_1~6.tres）
 ## 先不用，之後要恢復分級掉落再換回來即可，資源檔還留著。
 @export var loot_table: Array[LootData] = [
 	preload("res://resources/items/loot_coin.tres"),
 	preload("res://resources/items/loot_meat.tres"),
+	preload("res://resources/items/loot_potion_health.tres"),
+	preload("res://resources/items/loot_potion_mana.tres"),
 ]

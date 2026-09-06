@@ -10,3 +10,6 @@ extends Resource
 @export var amount: int = 1
 ## 加權隨機抽選用：權重越高越常掉落，數值只有相對比例有意義，不用總和為 1。
 @export var weight: float = 1.0
+## 顯示縮放倍率，預設 1.0（沿用貼圖原始像素大小）。原始美術素材解析度不一致時，
+## 用這個縮小顯示即可，不用另外裁切存縮圖檔。
+@export var display_scale: float = 1.0
