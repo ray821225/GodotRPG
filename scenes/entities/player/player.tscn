@@ -2,6 +2,10 @@
 
 [ext_resource type="Texture2D" uid="uid://dd14yvscw8gcd" path="res://assets/sprites/player/Warrior_Blue.png" id="1_4flbx"]
 [ext_resource type="Script" uid="uid://c3r53ecshsp3m" path="res://scenes/entities/player/player.gd" id="1_635qg"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/levelup.wav" id="2_levelup_sfx"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/dead.wav" id="3_dead_sfx"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/pickup.mp3" id="4_pickup_sfx"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/slash.mp3" id="5_slash_sfx"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_1hmtu"]
 radius = 23.0
@@ -283,3 +287,15 @@ text = "Lv.1  EXP 0/30"
 
 [node name="ChargeEffect" type="AnimatedSprite2D" parent="." unique_id=877768041]
 position = Vector2(0, -26)
+
+[node name="LevelUpSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_levelup_sfx")
+
+[node name="DeathSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_dead_sfx")
+
+[node name="PickupSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("4_pickup_sfx")
+
+[node name="SlashSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("5_slash_sfx")

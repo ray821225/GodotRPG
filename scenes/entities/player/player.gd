@@ -100,6 +100,10 @@ var exp_to_next: int = 0
 @onready var gold_label: Label = $HUD/HUDControl/GoldLabel
 @onready var exp_label: Label = $HUD/HUDControl/ExpLabel
 @onready var charge_effect: AnimatedSprite2D = $ChargeEffect
+@onready var levelup_sound: AudioStreamPlayer = $LevelUpSound
+@onready var death_sound: AudioStreamPlayer = $DeathSound
+@onready var pickup_sound: AudioStreamPlayer = $PickupSound
+@onready var slash_sound: AudioStreamPlayer = $SlashSound
 
 func _ready() -> void:
 	_apply_role_stats()
@@ -326,6 +330,7 @@ func attack() -> void:
 
 	hit_box.position = attack_dir * 40
 	hit_box.monitoring = true
+	slash_sound.play()
 
 	await get_tree().create_timer(ATTACK_HIT_DELAY).timeout
 	deal_damage(is_counter)
@@ -477,6 +482,7 @@ func _try_interact() -> void:
 
 ## 拾取契約：任何 Pickup 撿起來都呼叫這個方法。coin 直接加金幣，其他道具先進 inventory 計數。
 func collect_item(item_id: String, amount: int) -> void:
+	pickup_sound.play()
 	if item_id == "coin":
 		gold += amount
 		gold_label.text = "Gold: %d" % gold
@@ -499,6 +505,7 @@ func gain_exp(amount: int) -> void:
 	_update_exp_label()
 	if leveled_up:
 		_spawn_levelup_effect()
+		levelup_sound.play()
 
 func _update_exp_label() -> void:
 	exp_label.text = "Lv.%d  EXP %d/%d" % [level, exp, exp_to_next]
@@ -555,6 +562,7 @@ func die() -> void:
 	var effect = DEATH_EFFECT.instantiate()
 	get_tree().current_scene.add_child(effect)
 	effect.global_position = global_position + Vector2(0, -48)
+	death_sound.play()
 
 	await get_tree().create_timer(1.5).timeout
 	GameManager.on_player_died()

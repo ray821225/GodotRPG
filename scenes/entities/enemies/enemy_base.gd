@@ -16,6 +16,7 @@ enum State {
 const DAMAGE_NUMBER = preload("res://scenes/ui/damage_number.tscn")
 const PICKUP = preload("res://scenes/items/pickup.tscn")
 const DUST_EFFECT = preload("res://scenes/effects/dust_effect.tscn")
+const DEATH_SOUND = preload("res://assets/audio/sfx/dead.wav")
 const EnemyData = preload("res://scenes/entities/enemies/enemy_data.gd")
 const DamageMath = preload("res://scenes/entities/damage_math.gd")
 const KNOCKBACK_ON_HIT: float = 14.0
@@ -61,6 +62,10 @@ var _wander_check_position: Vector2 = Vector2.ZERO
 @onready var health_bar: ProgressBar = $HealthBar
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 
+## 死亡音效用程式動態建立（不是場景裡的節點），這樣所有敵人種類的 .tscn 都不用另外加節點，
+## 之後新增敵人種類也會自動有這個音效。敵人死亡後是重生而不是 queue_free，所以只建立一次重複使用即可。
+var _death_sound_player: AudioStreamPlayer
+
 func _ready() -> void:
 	_apply_data()
 	hp = max_hp
@@ -76,6 +81,9 @@ func _ready() -> void:
 	detection_area.body_exited.connect(_on_detection_body_exited)
 	detection_area.monitoring = use_detection
 	_style_health_bar()
+	_death_sound_player = AudioStreamPlayer.new()
+	_death_sound_player.stream = DEATH_SOUND
+	add_child(_death_sound_player)
 
 func _apply_data() -> void:
 	if data == null:
@@ -284,6 +292,7 @@ func _flash_damage() -> void:
 func die() -> void:
 	state = State.DEAD
 	velocity = Vector2.ZERO
+	_death_sound_player.play()
 	# player 此時是最後一個攻擊者（take_damage() 設定），要在歸零前先取出來發經驗值。
 	var killer: CharacterBody2D = player
 	player = null
