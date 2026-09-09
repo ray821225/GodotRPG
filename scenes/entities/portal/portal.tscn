@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://cl7heuc2whkuo"]
+
+[ext_resource type="Script" uid="uid://sykkmukfci2d" path="res://scenes/entities/portal/portal.gd" id="1_portal"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_portal"]
+radius = 16.03122
+
+[node name="Portal" type="Area2D" unique_id=893241885]
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("1_portal")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1026637201]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=386858853]
+shape = SubResource("CircleShape2D_portal")
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]

@@ -109,14 +109,18 @@ func _ready() -> void:
 	_apply_role_stats()
 	hp = max_hp
 	mp = max_mp
-	health_bar.max_value = max_hp
-	health_bar.value = hp
 	hit_box.monitoring = false
 	animation_tree.active = true
 	_style_health_bar()
 	charge_effect.sprite_frames = _build_charge_sprite_frames()
 	exp_to_next = _exp_needed_for_level(level)
+	if GameManager.has_player_state():
+		GameManager.restore_player_state(self)
+	health_bar.max_value = max_hp
+	health_bar.value = hp
+	gold_label.text = "Gold: %d" % gold
 	_update_exp_label()
+	GameManager.consume_pending_spawn(self)
 
 ## 把 charg_big 這張橫向排列的蓄力精靈圖切成 CHARGE_SLASH_FRAME_COUNT 格，組成 AnimatedSprite2D
 ## 可播放的 charge 動畫（時長對齊 charge_slash_charge_time，設為 loop 讓蓄滿等待放開期間不會停在最後一偵）。
