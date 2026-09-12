@@ -1,8 +1,8 @@
-[gd_scene format=4]
+[gd_scene format=4 uid="uid://cis3r2i88frgq"]
 
-[ext_resource type="TileSet" path="res://resources/tilesets/Ground.tres" id="2_ground_ts"]
+[ext_resource type="TileSet" uid="uid://glm4idgflqek" path="res://resources/tilesets/Ground.tres" id="2_ground_ts"]
 [ext_resource type="PackedScene" uid="uid://qnot8khdnq38" path="res://scenes/entities/player/player.tscn" id="13_yti6m"]
-[ext_resource type="PackedScene" path="res://scenes/entities/portal/portal.tscn" id="50_portal"]
+[ext_resource type="PackedScene" uid="uid://cl7heuc2whkuo" path="res://scenes/entities/portal/portal.tscn" id="50_portal"]
 [ext_resource type="Texture2D" uid="uid://cf2m1d520p3ey" path="res://assets/effects/Dimensional_Portal.png" id="51_portal_tex"]
 
 [node name="Map2" type="Node2D" unique_id=1498851058]
@@ -16,11 +16,10 @@ tile_map_data = PackedByteArray("AAAUAAsAAAABAAEAAAAUAAoAAAABAAEAAAAUAAkAAAABAAE
 tile_set = ExtResource("2_ground_ts")
 
 [node name="Player" parent="." unique_id=2058687821 instance=ExtResource("13_yti6m")]
-position = Vector2(500, 572)
+position = Vector2(505, 619)
 
-
-[node name="PortalToTestMap" parent="." instance=ExtResource("50_portal")]
-position = Vector2(900, 572)
+[node name="PortalToTestMap" parent="." unique_id=1286854680 instance=ExtResource("50_portal")]
+position = Vector2(1341, 584.99994)
 scale = Vector2(2.2, 2.2)
 texture = ExtResource("51_portal_tex")
 h_frames = 3
@@ -30,5 +29,5 @@ fps = 10.0
 target_map = "res://scenes/maps/test_map.tscn"
 target_spawn_point = &"SpawnFromMap2"
 
-[node name="SpawnFromTestMap" type="Marker2D" parent="."]
-position = Vector2(700, 572)
+[node name="SpawnFromTestMap" type="Marker2D" parent="." unique_id=506089232]
+position = Vector2(779, 593)

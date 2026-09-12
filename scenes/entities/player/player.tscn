@@ -2,10 +2,13 @@
 
 [ext_resource type="Texture2D" uid="uid://dd14yvscw8gcd" path="res://assets/sprites/player/Warrior_Blue.png" id="1_4flbx"]
 [ext_resource type="Script" uid="uid://c3r53ecshsp3m" path="res://scenes/entities/player/player.gd" id="1_635qg"]
-[ext_resource type="AudioStream" path="res://assets/audio/sfx/levelup.wav" id="2_levelup_sfx"]
-[ext_resource type="AudioStream" path="res://assets/audio/sfx/dead.wav" id="3_dead_sfx"]
-[ext_resource type="AudioStream" path="res://assets/audio/sfx/pickup.mp3" id="4_pickup_sfx"]
-[ext_resource type="AudioStream" path="res://assets/audio/sfx/slash.mp3" id="5_slash_sfx"]
+[ext_resource type="AudioStream" uid="uid://gc08yv17b3c3" path="res://assets/audio/sfx/levelup.wav" id="2_levelup_sfx"]
+[ext_resource type="AudioStream" uid="uid://b7ub0gnagicos" path="res://assets/audio/sfx/dead.wav" id="3_dead_sfx"]
+[ext_resource type="AudioStream" uid="uid://c56kmui5btyws" path="res://assets/audio/sfx/pickup.mp3" id="4_pickup_sfx"]
+[ext_resource type="AudioStream" uid="uid://bclitwstydxfh" path="res://assets/audio/sfx/slash.mp3" id="5_slash_sfx"]
+[ext_resource type="Texture2D" uid="uid://c3vpuigg1dnn7" path="res://assets/ui/elements/Carved_9Slides.png" id="6_panel_bg"]
+[ext_resource type="Texture2D" uid="uid://d1s23p8dn0ay1" path="res://assets/ui/elements/Carved_3Slides.png" id="7_bar_frame"]
+[ext_resource type="Texture2D" uid="uid://1jowmgwbxjlm" path="res://assets/ui/elements/Flasks 32x32.png" id="8_flasks_sheet"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_1hmtu"]
 radius = 23.0
@@ -201,6 +204,14 @@ radius = 30.0
 [sub_resource type="CircleShape2D" id="CircleShape2D_interact"]
 radius = 55.0
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_hp_icon"]
+atlas = ExtResource("8_flasks_sheet")
+region = Rect2(224, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mp_icon"]
+atlas = ExtResource("8_flasks_sheet")
+region = Rect2(96, 160, 32, 32)
+
 [node name="Player" type="CharacterBody2D" unique_id=1685297004]
 collision_layer = 2
 script = ExtResource("1_635qg")
@@ -219,6 +230,7 @@ collision_layer = 2
 collision_mask = 0
 
 [node name="HurtBoxShape" type="CollisionShape2D" parent="HurtBox" unique_id=2051218838]
+visible = false
 position = Vector2(0, -34)
 shape = SubResource("CircleShape2D_hurtbox")
 
@@ -261,41 +273,146 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="HPBar" type="ProgressBar" parent="HUD/HUDControl" unique_id=290108221]
+[node name="GoldLabel" type="Label" parent="HUD/HUDControl" unique_id=1159006681]
 layout_mode = 0
 offset_left = 10.0
 offset_top = 10.0
 offset_right = 210.0
 offset_bottom = 32.0
-show_percentage = false
-
-[node name="GoldLabel" type="Label" parent="HUD/HUDControl" unique_id=1159006681]
-layout_mode = 0
-offset_left = 10.0
-offset_top = 38.0
-offset_right = 210.0
-offset_bottom = 60.0
 text = "Gold: 0"
 
-[node name="ExpLabel" type="Label" parent="HUD/HUDControl" unique_id=1014644436]
+[node name="BottomPanel" type="NinePatchRect" parent="HUD/HUDControl" unique_id=-1361867285]
 layout_mode = 0
+anchor_top = 1.0
+anchor_bottom = 1.0
 offset_left = 10.0
-offset_top = 64.0
-offset_right = 210.0
-offset_bottom = 86.0
-text = "Lv.1  EXP 0/30"
+offset_top = -136.0
+offset_right = 250.0
+offset_bottom = -30.0
+grow_vertical = 0
+texture = ExtResource("6_panel_bg")
+patch_margin_left = 16
+patch_margin_top = 16
+patch_margin_right = 16
+patch_margin_bottom = 16
+
+[node name="NameLabel" type="Label" parent="HUD/HUDControl/BottomPanel" unique_id=-483045095]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 8.0
+offset_right = 226.0
+offset_bottom = 30.0
+text = "Knight  Lv.1"
+
+[node name="HPIcon" type="TextureRect" parent="HUD/HUDControl/BottomPanel" unique_id=-483045094]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 40.0
+offset_right = 34.0
+offset_bottom = 60.0
+texture = SubResource("AtlasTexture_hp_icon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HPBarFrame" type="NinePatchRect" parent="HUD/HUDControl/BottomPanel" unique_id=-483045093]
+layout_mode = 0
+offset_left = 38.0
+offset_top = 38.0
+offset_right = 226.0
+offset_bottom = 62.0
+texture = ExtResource("7_bar_frame")
+patch_margin_left = 16
+patch_margin_right = 16
+
+[node name="HPBar" type="ProgressBar" parent="HUD/HUDControl/BottomPanel/HPBarFrame" unique_id=290108221]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = -6.0
+offset_bottom = -6.0
+grow_horizontal = 2
+grow_vertical = 2
+show_percentage = false
+
+[node name="MPIcon" type="TextureRect" parent="HUD/HUDControl/BottomPanel" unique_id=-483045092]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 68.0
+offset_right = 34.0
+offset_bottom = 88.0
+texture = SubResource("AtlasTexture_mp_icon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="MPBarFrame" type="NinePatchRect" parent="HUD/HUDControl/BottomPanel" unique_id=-483045091]
+layout_mode = 0
+offset_left = 38.0
+offset_top = 66.0
+offset_right = 226.0
+offset_bottom = 90.0
+texture = ExtResource("7_bar_frame")
+patch_margin_left = 16
+patch_margin_right = 16
+
+[node name="MPBar" type="ProgressBar" parent="HUD/HUDControl/BottomPanel/MPBarFrame" unique_id=-483045090]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = -6.0
+offset_bottom = -6.0
+grow_horizontal = 2
+grow_vertical = 2
+show_percentage = false
+
+[node name="ExpBarFrame" type="NinePatchRect" parent="HUD/HUDControl" unique_id=-483045089]
+layout_mode = 0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -22.0
+grow_horizontal = 2
+texture = ExtResource("7_bar_frame")
+patch_margin_left = 16
+patch_margin_right = 16
+
+[node name="ExpBar" type="ProgressBar" parent="HUD/HUDControl/ExpBarFrame" unique_id=-483045088]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+show_percentage = false
+
+[node name="ExpLabel" type="Label" parent="HUD/HUDControl/ExpBarFrame" unique_id=1014644436]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 12
+text = "0 / 30"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="ChargeEffect" type="AnimatedSprite2D" parent="." unique_id=877768041]
 position = Vector2(0, -26)
 
-[node name="LevelUpSound" type="AudioStreamPlayer" parent="."]
+[node name="LevelUpSound" type="AudioStreamPlayer" parent="." unique_id=101401279]
 stream = ExtResource("2_levelup_sfx")
 
-[node name="DeathSound" type="AudioStreamPlayer" parent="."]
+[node name="DeathSound" type="AudioStreamPlayer" parent="." unique_id=1050826909]
 stream = ExtResource("3_dead_sfx")
 
-[node name="PickupSound" type="AudioStreamPlayer" parent="."]
+[node name="PickupSound" type="AudioStreamPlayer" parent="." unique_id=1926076504]
 stream = ExtResource("4_pickup_sfx")
 
-[node name="SlashSound" type="AudioStreamPlayer" parent="."]
+[node name="SlashSound" type="AudioStreamPlayer" parent="." unique_id=1195467841]
 stream = ExtResource("5_slash_sfx")

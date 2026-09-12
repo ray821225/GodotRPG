@@ -96,9 +96,12 @@ var exp_to_next: int = 0
 @onready var animation_playback: AnimationNodeStateMachinePlayback = $AnimationTree["parameters/playback"]
 @onready var hit_box: Area2D = $HitBox
 @onready var interact_area: Area2D = $InteractArea
-@onready var health_bar: ProgressBar = $HUD/HUDControl/HPBar
+@onready var health_bar: ProgressBar = $HUD/HUDControl/BottomPanel/HPBarFrame/HPBar
+@onready var mana_bar: ProgressBar = $HUD/HUDControl/BottomPanel/MPBarFrame/MPBar
+@onready var name_label: Label = $HUD/HUDControl/BottomPanel/NameLabel
 @onready var gold_label: Label = $HUD/HUDControl/GoldLabel
-@onready var exp_label: Label = $HUD/HUDControl/ExpLabel
+@onready var exp_bar: ProgressBar = $HUD/HUDControl/ExpBarFrame/ExpBar
+@onready var exp_label: Label = $HUD/HUDControl/ExpBarFrame/ExpLabel
 @onready var charge_effect: AnimatedSprite2D = $ChargeEffect
 @onready var levelup_sound: AudioStreamPlayer = $LevelUpSound
 @onready var death_sound: AudioStreamPlayer = $DeathSound
@@ -111,13 +114,15 @@ func _ready() -> void:
 	mp = max_mp
 	hit_box.monitoring = false
 	animation_tree.active = true
-	_style_health_bar()
+	_style_bars()
 	charge_effect.sprite_frames = _build_charge_sprite_frames()
 	exp_to_next = _exp_needed_for_level(level)
 	if GameManager.has_player_state():
 		GameManager.restore_player_state(self)
 	health_bar.max_value = max_hp
 	health_bar.value = hp
+	mana_bar.max_value = max_mp
+	mana_bar.value = mp
 	gold_label.text = "Gold: %d" % gold
 	_update_exp_label()
 	GameManager.consume_pending_spawn(self)
@@ -154,17 +159,22 @@ func _apply_role_stats() -> void:
 	attack_speed = stats.atk_speed
 	speed = stats.walk_speed
 
-func _style_health_bar() -> void:
+func _style_bars() -> void:
+	_style_bar(health_bar, Color(0.8, 0.12, 0.1))
+	_style_bar(mana_bar, Color(0.15, 0.4, 0.85))
+	_style_bar(exp_bar, Color(0.85, 0.7, 0.15))
+
+func _style_bar(bar: ProgressBar, fill_color: Color) -> void:
 	var fill := StyleBoxFlat.new()
-	fill.bg_color = Color(0.8, 0.12, 0.1)
-	fill.set_corner_radius_all(4)
+	fill.bg_color = fill_color
+	fill.set_corner_radius_all(3)
 
 	var bg := StyleBoxFlat.new()
 	bg.bg_color = Color(0.12, 0.12, 0.12, 0.85)
-	bg.set_corner_radius_all(4)
+	bg.set_corner_radius_all(3)
 
-	health_bar.add_theme_stylebox_override("fill", fill)
-	health_bar.add_theme_stylebox_override("background", bg)
+	bar.add_theme_stylebox_override("fill", fill)
+	bar.add_theme_stylebox_override("background", bg)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
@@ -512,7 +522,10 @@ func gain_exp(amount: int) -> void:
 		levelup_sound.play()
 
 func _update_exp_label() -> void:
-	exp_label.text = "Lv.%d  EXP %d/%d" % [level, exp, exp_to_next]
+	name_label.text = "%s  Lv.%d" % [role, level]
+	exp_bar.max_value = exp_to_next
+	exp_bar.value = exp
+	exp_label.text = "%d / %d" % [exp, exp_to_next]
 
 func _spawn_levelup_effect() -> void:
 	var effect = LEVELUP_EFFECT.instantiate()

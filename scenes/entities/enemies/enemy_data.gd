@@ -9,6 +9,8 @@ extends Resource
 const LootData = preload("res://scenes/items/loot_data.gd")
 
 @export var display_name: String = "Enemy"
+## 滑鼠移到怪物上時名牌顯示的等級，純顯示用，目前不影響任何數值計算。
+@export var level: int = 1
 @export var sprite_frames: SpriteFrames
 ## 素材本身「沒翻轉時」預設面向哪邊：大多數素材預設面右，但有些（例如 Mushroom）
 ## 攻擊動作本身就是往畫面左邊揮，這種要打開此選項，flip_h 的判斷才不會左右相反。

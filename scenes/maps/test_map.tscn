@@ -63,7 +63,7 @@ tile_map_data = PackedByteArray("AAASAA0AAAAAAAAAAAAoAA0AAAAAAAAAAAA=")
 tile_set = ExtResource("6_ibx7c")
 
 [node name="Player" parent="." unique_id=2058687821 instance=ExtResource("13_yti6m")]
-position = Vector2(500, 572)
+position = Vector2(432, 529)
 
 [node name="SpawnSlimeBlue" type="Marker2D" parent="." unique_id=731942658]
 position = Vector2(1222, 121)
@@ -258,7 +258,7 @@ enemy_scene = ExtResource("40_goblin_bomber")
 enemy_data = ExtResource("41_data_goblin_bomber")
 
 [node name="PortalToMap2" parent="." unique_id=1259641623 instance=ExtResource("50_portal")]
-position = Vector2(739, 718)
+position = Vector2(770, 725)
 scale = Vector2(2.2, 2.2)
 texture = ExtResource("51_portal_tex")
 h_frames = 3

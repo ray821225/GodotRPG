@@ -60,6 +60,7 @@ var _wander_check_position: Vector2 = Vector2.ZERO
 @onready var detection_area: Area2D = $DetectionArea
 @onready var hurt_box: Area2D = $HurtBox
 @onready var health_bar: ProgressBar = $HealthBar
+@onready var name_tag: Label = $NameTag
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 
 ## 死亡音效用程式動態建立（不是場景裡的節點），這樣所有敵人種類的 .tscn 都不用另外加節點，
@@ -76,10 +77,15 @@ func _ready() -> void:
 	wander_target = spawn_position
 	wander_timer.one_shot = true
 	wander_timer.timeout.connect(_on_wander_timer_timeout)
+	# 剛進地圖就直接開始漫遊，不要停在 IDLE 等第一次計時器倒數完才動。
+	_start_wandering()
 	_restart_wander_timer()
 	detection_area.body_entered.connect(_on_detection_body_entered)
 	detection_area.body_exited.connect(_on_detection_body_exited)
 	detection_area.monitoring = use_detection
+	hurt_box.input_pickable = true
+	hurt_box.mouse_entered.connect(_on_hurt_box_mouse_entered)
+	hurt_box.mouse_exited.connect(_on_hurt_box_mouse_exited)
 	_style_health_bar()
 	_death_sound_player = AudioStreamPlayer.new()
 	_death_sound_player.stream = DEATH_SOUND
@@ -108,6 +114,7 @@ func _apply_data() -> void:
 	wander_range = data.wander_range
 	wander_interval = data.wander_interval
 	respawn_delay = data.respawn_delay
+	name_tag.text = "%s  Lv.%d" % [data.display_name, data.level]
 	_apply_extra_data()
 
 ## 子類別覆寫：讀取自己專屬的 data 欄位（例如近戰的 attack_animations）。
@@ -302,6 +309,7 @@ func die() -> void:
 	hurt_box.collision_layer = 0
 	detection_area.monitoring = false
 	health_bar.visible = false
+	name_tag.visible = false
 	collision_shape.set_deferred("disabled", true)
 	# 死亡有可能是在物理查詢 flush 中觸發（例如技能的 area_entered 訊號），這時直接
 	# add_child 一個新的 Area2D（掉落物）會撞到「不能在 flush 中改變物理狀態」的
@@ -380,18 +388,21 @@ func _restart_wander_timer() -> void:
 	wander_timer.wait_time = randf_range(wander_interval * 0.6, wander_interval * 1.4)
 	wander_timer.start()
 
+func _start_wandering() -> void:
+	var offset: Vector2 = Vector2(
+		randf_range(-wander_range, wander_range),
+		randf_range(-wander_range, wander_range)
+	)
+	wander_target = spawn_position + offset
+	state = State.WANDER
+	sprite.play("run")
+	_wander_stuck_count = 0
+	_wander_stuck_check_elapsed = 0.0
+	_wander_check_position = global_position
+
 func _on_wander_timer_timeout() -> void:
 	if state == State.IDLE:
-		var offset: Vector2 = Vector2(
-			randf_range(-wander_range, wander_range),
-			randf_range(-wander_range, wander_range)
-		)
-		wander_target = spawn_position + offset
-		state = State.WANDER
-		sprite.play("run")
-		_wander_stuck_count = 0
-		_wander_stuck_check_elapsed = 0.0
-		_wander_check_position = global_position
+		_start_wandering()
 	_restart_wander_timer()
 
 func _on_detection_body_entered(body: Node2D) -> void:
@@ -406,3 +417,10 @@ func _on_detection_body_exited(body: Node2D) -> void:
 		if state != State.ATTACK and state != State.DEAD:
 			state = State.IDLE
 			sprite.play("idle")
+
+func _on_hurt_box_mouse_entered() -> void:
+	if state != State.DEAD:
+		name_tag.visible = true
+
+func _on_hurt_box_mouse_exited() -> void:
+	name_tag.visible = false
