@@ -8,14 +8,12 @@
 [ext_resource type="TileSet" uid="uid://dm7lo5k4afxni" path="res://resources/tilesets/Shadow.tres" id="6_shadow_ts"]
 [ext_resource type="PackedScene" uid="uid://qnot8khdnq38" path="res://scenes/entities/player/player.tscn" id="13_yti6m"]
 [ext_resource type="PackedScene" uid="uid://cqlasgnog3knf" path="res://scenes/entities/enemies/slime.tscn" id="14_slime"]
+[ext_resource type="Script" uid="uid://drdtfwq5tdue4" path="res://scenes/entities/enemies/enemy_spawn_area.gd" id="19_rxdrk"]
 [ext_resource type="Resource" uid="uid://cjuh51tyjyqck" path="res://resources/enemies/slime_data_green.tres" id="20_data_green"]
-[ext_resource type="Resource" uid="uid://mtshtg3gr3l2" path="res://resources/enemies/slime_data_blue.tres" id="22_data_blue"]
-[ext_resource type="Resource" uid="uid://bhy6h08hq0gu2" path="res://resources/enemies/slime_data_yellow.tres" id="26_data_yellow"]
+[ext_resource type="Resource" uid="uid://dt14lk1p6uhec" path="res://resources/enemies/slime_data_cyan.tres" id="20_l4ftj"]
 [ext_resource type="PackedScene" path="res://scenes/entities/enemies/mushroom.tscn" id="27_mushroom"]
 [ext_resource type="Resource" uid="uid://ckgabhr70mgem" path="res://resources/enemies/mushroom_data.tres" id="28_data_mushroom"]
 [ext_resource type="Script" uid="uid://bfnxt2ypji7fg" path="res://scenes/entities/enemies/enemy_spawn_point.gd" id="33_spawn"]
-[ext_resource type="PackedScene" path="res://scenes/entities/enemies/goblin_bomber.tscn" id="40_goblin_bomber"]
-[ext_resource type="Resource" uid="uid://dn6qwvxjxw4ue" path="res://resources/enemies/goblin_bomber_data.tres" id="41_data_goblin_bomber"]
 [ext_resource type="PackedScene" uid="uid://cl7heuc2whkuo" path="res://scenes/entities/portal/portal.tscn" id="50_portal"]
 [ext_resource type="Texture2D" uid="uid://cf2m1d520p3ey" path="res://assets/effects/Dimensional_Portal.png" id="51_portal_tex"]
 
@@ -63,139 +61,7 @@ tile_map_data = PackedByteArray("AAASAA0AAAAAAAAAAAAoAA0AAAAAAAAAAAA=")
 tile_set = ExtResource("6_ibx7c")
 
 [node name="Player" parent="." unique_id=2058687821 instance=ExtResource("13_yti6m")]
-position = Vector2(432, 529)
-
-[node name="SpawnSlimeBlue" type="Marker2D" parent="." unique_id=731942658]
-position = Vector2(1222, 121)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("14_slime")
-enemy_data = ExtResource("22_data_blue")
-
-[node name="SpawnSlimeBlue5" type="Marker2D" parent="." unique_id=1927215293]
-position = Vector2(1030, 811)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("14_slime")
-enemy_data = ExtResource("22_data_blue")
-
-[node name="SpawnSlimeBlue6" type="Marker2D" parent="." unique_id=453716455]
-position = Vector2(521, 266)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("14_slime")
-enemy_data = ExtResource("22_data_blue")
-
-[node name="SpawnSlimeBlue7" type="Marker2D" parent="." unique_id=1187746683]
-position = Vector2(1323, 626)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("14_slime")
-enemy_data = ExtResource("22_data_blue")
-
-[node name="SpawnSlimeBlue8" type="Marker2D" parent="." unique_id=1633667616]
-position = Vector2(1233, 283)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("14_slime")
-enemy_data = ExtResource("22_data_blue")
-
-[node name="SpawnSlimeBlue9" type="Marker2D" parent="." unique_id=248289564]
-position = Vector2(1191, 702)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("14_slime")
-enemy_data = ExtResource("22_data_blue")
-
-[node name="SpawnSlimeBlue10" type="Marker2D" parent="." unique_id=956323524]
-position = Vector2(1345, 971)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("14_slime")
-enemy_data = ExtResource("22_data_blue")
-
-[node name="SpawnSlimeBlue4" type="Marker2D" parent="." unique_id=549967215]
-position = Vector2(959, 405)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("14_slime")
-enemy_data = ExtResource("22_data_blue")
-
-[node name="SpawnSlimeBlue2" type="Marker2D" parent="." unique_id=157318734]
-position = Vector2(801, 220)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("14_slime")
-enemy_data = ExtResource("22_data_blue")
-
-[node name="SpawnSlimeBlue3" type="Marker2D" parent="." unique_id=1682343278]
-position = Vector2(584, 981)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("14_slime")
-enemy_data = ExtResource("22_data_blue")
-
-[node name="SpawnSlimeGreen" type="Marker2D" parent="." unique_id=1236004119]
-position = Vector2(1140, 900)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("14_slime")
-enemy_data = ExtResource("20_data_green")
-
-[node name="SpawnSlimeGreen4" type="Marker2D" parent="." unique_id=676821496]
-position = Vector2(296, 1074)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("14_slime")
-enemy_data = ExtResource("20_data_green")
-
-[node name="SpawnSlimeGreen6" type="Marker2D" parent="." unique_id=227261738]
-position = Vector2(979, 142)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("14_slime")
-enemy_data = ExtResource("20_data_green")
-
-[node name="SpawnSlimeGreen7" type="Marker2D" parent="." unique_id=441514049]
-position = Vector2(897, 558)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("14_slime")
-enemy_data = ExtResource("20_data_green")
-
-[node name="SpawnSlimeGreen2" type="Marker2D" parent="." unique_id=497257407]
-position = Vector2(1126, 1031)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("14_slime")
-enemy_data = ExtResource("20_data_green")
-
-[node name="SpawnSlimeGreen3" type="Marker2D" parent="." unique_id=702251001]
-position = Vector2(1003, 1009)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("14_slime")
-enemy_data = ExtResource("20_data_green")
-
-[node name="SpawnSlimeYellow" type="Marker2D" parent="." unique_id=1874665245]
-position = Vector2(1413, 179)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("14_slime")
-enemy_data = ExtResource("26_data_yellow")
-
-[node name="SpawnSlimeYellow2" type="Marker2D" parent="." unique_id=188531699]
-position = Vector2(281, 161)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("14_slime")
-enemy_data = ExtResource("26_data_yellow")
-
-[node name="SpawnSlimeYellow3" type="Marker2D" parent="." unique_id=149931817]
-position = Vector2(108, 110)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("14_slime")
-enemy_data = ExtResource("26_data_yellow")
-
-[node name="SpawnSlimeYellow4" type="Marker2D" parent="." unique_id=196115470]
-position = Vector2(409, 987)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("14_slime")
-enemy_data = ExtResource("26_data_yellow")
-
-[node name="SpawnSlimeYellow5" type="Marker2D" parent="." unique_id=570363867]
-position = Vector2(608, 91)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("14_slime")
-enemy_data = ExtResource("26_data_yellow")
-
-[node name="SpawnSlimeYellow6" type="Marker2D" parent="." unique_id=327642801]
-position = Vector2(155, 308)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("14_slime")
-enemy_data = ExtResource("26_data_yellow")
+position = Vector2(953, 495)
 
 [node name="SpawnMushroom" type="Marker2D" parent="." unique_id=475935831]
 position = Vector2(232, 571)
@@ -203,62 +69,8 @@ script = ExtResource("33_spawn")
 enemy_scene = ExtResource("27_mushroom")
 enemy_data = ExtResource("28_data_mushroom")
 
-[node name="SpawnMushroom2" type="Marker2D" parent="." unique_id=1521786259]
-position = Vector2(1533, 290)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("27_mushroom")
-enemy_data = ExtResource("28_data_mushroom")
-
-[node name="SpawnMushroom3" type="Marker2D" parent="." unique_id=1788893527]
-position = Vector2(1792, 930)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("27_mushroom")
-enemy_data = ExtResource("28_data_mushroom")
-
-[node name="SpawnMushroom4" type="Marker2D" parent="." unique_id=341941855]
-position = Vector2(1767, 428)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("27_mushroom")
-enemy_data = ExtResource("28_data_mushroom")
-
-[node name="SpawnMushroom5" type="Marker2D" parent="." unique_id=1574942923]
-position = Vector2(1760, 183)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("27_mushroom")
-enemy_data = ExtResource("28_data_mushroom")
-
-[node name="SpawnMushroom6" type="Marker2D" parent="." unique_id=1954832399]
-position = Vector2(1640, 828)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("27_mushroom")
-enemy_data = ExtResource("28_data_mushroom")
-
-[node name="SpawnMushroom7" type="Marker2D" parent="." unique_id=738270120]
-position = Vector2(1550, 1009)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("27_mushroom")
-enemy_data = ExtResource("28_data_mushroom")
-
-[node name="SpawnGoblinBomber" type="Marker2D" parent="." unique_id=1384549228]
-position = Vector2(1586, 153)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("40_goblin_bomber")
-enemy_data = ExtResource("41_data_goblin_bomber")
-
-[node name="SpawnGoblinBomber2" type="Marker2D" parent="." unique_id=624902444]
-position = Vector2(1450, 550)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("40_goblin_bomber")
-enemy_data = ExtResource("41_data_goblin_bomber")
-
-[node name="SpawnGoblinBomber3" type="Marker2D" parent="." unique_id=1167901940]
-position = Vector2(1570, 612)
-script = ExtResource("33_spawn")
-enemy_scene = ExtResource("40_goblin_bomber")
-enemy_data = ExtResource("41_data_goblin_bomber")
-
 [node name="PortalToMap2" parent="." unique_id=1259641623 instance=ExtResource("50_portal")]
-position = Vector2(770, 725)
+position = Vector2(1067, 733)
 scale = Vector2(2.2, 2.2)
 texture = ExtResource("51_portal_tex")
 h_frames = 3
@@ -268,4 +80,26 @@ target_map = "res://scenes/maps/map2.tscn"
 target_spawn_point = &"SpawnFromTestMap"
 
 [node name="SpawnFromMap2" type="Marker2D" parent="." unique_id=38490579]
-position = Vector2(932, 681)
+position = Vector2(874, 709)
+
+[node name="SpawnAreaSlimeCyan" type="Node2D" parent="." unique_id=722092931]
+position = Vector2(538, 240)
+script = ExtResource("19_rxdrk")
+enemy_scene = ExtResource("14_slime")
+enemy_data = ExtResource("20_l4ftj")
+min_count = 10
+max_count = 15
+shape_type = 1
+radius = 400.0
+rect_size = Vector2(500, 500)
+
+[node name="SpawnAreaSlimeGreen" type="Node2D" parent="." unique_id=1250306450]
+position = Vector2(1161, 761)
+script = ExtResource("19_rxdrk")
+enemy_scene = ExtResource("14_slime")
+enemy_data = ExtResource("20_data_green")
+min_count = 35
+max_count = 40
+shape_type = 1
+radius = 400.0
+rect_size = Vector2(1400, 700)

@@ -19,7 +19,7 @@ tile_set = ExtResource("2_ground_ts")
 position = Vector2(505, 619)
 
 [node name="PortalToTestMap" parent="." unique_id=1286854680 instance=ExtResource("50_portal")]
-position = Vector2(1341, 584.99994)
+position = Vector2(85.99988, 582)
 scale = Vector2(2.2, 2.2)
 texture = ExtResource("51_portal_tex")
 h_frames = 3
@@ -30,4 +30,4 @@ target_map = "res://scenes/maps/test_map.tscn"
 target_spawn_point = &"SpawnFromMap2"
 
 [node name="SpawnFromTestMap" type="Marker2D" parent="." unique_id=506089232]
-position = Vector2(779, 593)
+position = Vector2(805, 799)

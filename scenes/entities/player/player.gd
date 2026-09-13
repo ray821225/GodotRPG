@@ -347,7 +347,7 @@ func attack() -> void:
 	slash_sound.play()
 
 	await get_tree().create_timer(ATTACK_HIT_DELAY).timeout
-	deal_damage(is_counter)
+	deal_damage(is_counter, 1.0, true)
 
 	await get_tree().create_timer(ATTACK_LOCK_DURATION - ATTACK_HIT_DELAY).timeout
 	hit_box.monitoring = false
@@ -428,7 +428,7 @@ func _fire_charge_slash() -> void:
 	await get_tree().create_timer(maxf(attack_speed - ATTACK_LOCK_DURATION, 0.0)).timeout
 	attack_ready = true
 
-func deal_damage(is_counter: bool = false, damage_multiplier: float = 1.0) -> void:
+func deal_damage(is_counter: bool = false, damage_multiplier: float = 1.0, single_target: bool = false) -> void:
 	if not hit_box.monitoring:
 		return
 	var areas = hit_box.get_overlapping_areas()
@@ -436,14 +436,29 @@ func deal_damage(is_counter: bool = false, damage_multiplier: float = 1.0) -> vo
 	if is_counter:
 		damage = int(round(damage * (1.0 + counter_damage_bonus)))
 
-	var hit_any: bool = false
-	var last_target: Node2D = null
+	var targets: Array[Node2D] = []
 	for area in areas:
 		var target = area.get_parent()
 		if target.has_method("take_damage"):
-			target.take_damage(damage, DamageNumber.DamageType.PHYSICAL, self)
-			hit_any = true
-			last_target = target
+			targets.append(target)
+
+	# 普通攻擊/反擊只打離玩家最近的一隻，蓄力斬（single_target = false）維持範圍全部命中。
+	if single_target and targets.size() > 1:
+		var nearest: Node2D = targets[0]
+		var nearest_dist: float = global_position.distance_squared_to(nearest.global_position)
+		for target in targets:
+			var dist: float = global_position.distance_squared_to(target.global_position)
+			if dist < nearest_dist:
+				nearest = target
+				nearest_dist = dist
+		targets = [nearest]
+
+	var hit_any: bool = false
+	var last_target: Node2D = null
+	for target in targets:
+		target.take_damage(damage, DamageNumber.DamageType.PHYSICAL, self)
+		hit_any = true
+		last_target = target
 
 	if is_counter and hit_any:
 		_spawn_counter_effect(last_target.global_position)
@@ -525,7 +540,7 @@ func _update_exp_label() -> void:
 	name_label.text = "%s  Lv.%d" % [role, level]
 	exp_bar.max_value = exp_to_next
 	exp_bar.value = exp
-	exp_label.text = "%d / %d" % [exp, exp_to_next]
+	exp_label.text = "EXP %d / %d" % [exp, exp_to_next]
 
 func _spawn_levelup_effect() -> void:
 	var effect = LEVELUP_EFFECT.instantiate()

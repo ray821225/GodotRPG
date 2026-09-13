@@ -8,7 +8,6 @@
 [ext_resource type="AudioStream" uid="uid://bclitwstydxfh" path="res://assets/audio/sfx/slash.mp3" id="5_slash_sfx"]
 [ext_resource type="Texture2D" uid="uid://c3vpuigg1dnn7" path="res://assets/ui/elements/Carved_9Slides.png" id="6_panel_bg"]
 [ext_resource type="Texture2D" uid="uid://d1s23p8dn0ay1" path="res://assets/ui/elements/Carved_3Slides.png" id="7_bar_frame"]
-[ext_resource type="Texture2D" uid="uid://1jowmgwbxjlm" path="res://assets/ui/elements/Flasks 32x32.png" id="8_flasks_sheet"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_1hmtu"]
 radius = 23.0
@@ -204,14 +203,6 @@ radius = 30.0
 [sub_resource type="CircleShape2D" id="CircleShape2D_interact"]
 radius = 55.0
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_hp_icon"]
-atlas = ExtResource("8_flasks_sheet")
-region = Rect2(224, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_mp_icon"]
-atlas = ExtResource("8_flasks_sheet")
-region = Rect2(96, 160, 32, 32)
-
 [node name="Player" type="CharacterBody2D" unique_id=1685297004]
 collision_layer = 2
 script = ExtResource("1_635qg")
@@ -304,15 +295,17 @@ offset_right = 226.0
 offset_bottom = 30.0
 text = "Knight  Lv.1"
 
-[node name="HPIcon" type="TextureRect" parent="HUD/HUDControl/BottomPanel" unique_id=-483045094]
+[node name="HPIcon" type="Label" parent="HUD/HUDControl/BottomPanel" unique_id=-483045094]
 layout_mode = 0
 offset_left = 14.0
 offset_top = 40.0
 offset_right = 34.0
 offset_bottom = 60.0
-texture = SubResource("AtlasTexture_hp_icon")
-expand_mode = 1
-stretch_mode = 5
+theme_override_colors/font_color = Color(0.9, 0.3, 0.28, 1)
+theme_override_font_sizes/font_size = 11
+text = "HP"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="HPBarFrame" type="NinePatchRect" parent="HUD/HUDControl/BottomPanel" unique_id=-483045093]
 layout_mode = 0
@@ -336,15 +329,17 @@ grow_horizontal = 2
 grow_vertical = 2
 show_percentage = false
 
-[node name="MPIcon" type="TextureRect" parent="HUD/HUDControl/BottomPanel" unique_id=-483045092]
+[node name="MPIcon" type="Label" parent="HUD/HUDControl/BottomPanel" unique_id=-483045092]
 layout_mode = 0
 offset_left = 14.0
 offset_top = 68.0
 offset_right = 34.0
 offset_bottom = 88.0
-texture = SubResource("AtlasTexture_mp_icon")
-expand_mode = 1
-stretch_mode = 5
+theme_override_colors/font_color = Color(0.35, 0.55, 0.9, 1)
+theme_override_font_sizes/font_size = 11
+text = "MP"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="MPBarFrame" type="NinePatchRect" parent="HUD/HUDControl/BottomPanel" unique_id=-483045091]
 layout_mode = 0
