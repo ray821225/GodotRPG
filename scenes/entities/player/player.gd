@@ -98,6 +98,8 @@ var exp_to_next: int = 0
 @onready var interact_area: Area2D = $InteractArea
 @onready var health_bar: ProgressBar = $HUD/HUDControl/BottomPanel/HPBarFrame/HPBar
 @onready var mana_bar: ProgressBar = $HUD/HUDControl/BottomPanel/MPBarFrame/MPBar
+@onready var hp_label: Label = $HUD/HUDControl/BottomPanel/HPBarFrame/HPLabel
+@onready var mp_label: Label = $HUD/HUDControl/BottomPanel/MPBarFrame/MPLabel
 @onready var name_label: Label = $HUD/HUDControl/BottomPanel/NameLabel
 @onready var gold_label: Label = $HUD/HUDControl/GoldLabel
 @onready var exp_bar: ProgressBar = $HUD/HUDControl/ExpBarFrame/ExpBar
@@ -123,6 +125,8 @@ func _ready() -> void:
 	health_bar.value = hp
 	mana_bar.max_value = max_mp
 	mana_bar.value = mp
+	_update_hp_label()
+	_update_mp_label()
 	gold_label.text = "Gold: %d" % gold
 	_update_exp_label()
 	GameManager.consume_pending_spawn(self)
@@ -488,6 +492,7 @@ func take_damage(amount: int, type: DamageNumber.DamageType = DamageNumber.Damag
 	var final_damage: int = DamageMath.calculate(amount, def)
 	hp -= final_damage
 	health_bar.value = hp
+	_update_hp_label()
 	_spawn_damage_number(final_damage)
 	_flash_damage()
 	if attacker and not blocked:
@@ -535,6 +540,12 @@ func gain_exp(amount: int) -> void:
 	if leveled_up:
 		_spawn_levelup_effect()
 		levelup_sound.play()
+
+func _update_hp_label() -> void:
+	hp_label.text = "%d / %d" % [hp, max_hp]
+
+func _update_mp_label() -> void:
+	mp_label.text = "%d / %d" % [mp, max_mp]
 
 func _update_exp_label() -> void:
 	name_label.text = "%s  Lv.%d" % [role, level]

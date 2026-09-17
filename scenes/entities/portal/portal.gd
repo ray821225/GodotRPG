@@ -1,6 +1,6 @@
 extends Area2D
 
-## 傳送門：碰到玩家就換地圖。動畫用 sprite sheet 在 _ready() 動態切幀
+## 傳送門：碰到玩家後需按 W（up）才觸發換地圖。動畫用 sprite sheet 在 _ready() 動態切幀
 ## （做法跟 player.gd 的蓄力斬特效一樣），這樣同一顆場景換張圖就能重複利用。
 @export_category("Visual")
 @export var texture: Texture2D
@@ -16,10 +16,18 @@ extends Area2D
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 
 var _used: bool = false
+var _bodies_in_range: Array[Node2D] = []
 
 func _ready() -> void:
 	sprite.sprite_frames = _build_sprite_frames()
 	sprite.play(&"idle")
+
+func _process(_delta: float) -> void:
+	if _used or _bodies_in_range.is_empty():
+		return
+	if Input.is_action_just_pressed(&"up"):
+		_used = true
+		GameManager.teleport(_bodies_in_range[0], target_map, target_spawn_point)
 
 func _build_sprite_frames() -> SpriteFrames:
 	var frames := SpriteFrames.new()
@@ -42,5 +50,7 @@ func _on_body_entered(body: Node2D) -> void:
 		return
 	if not body.has_method("collect_item"):
 		return
-	_used = true
-	GameManager.teleport(body, target_map, target_spawn_point)
+	_bodies_in_range.append(body)
+
+func _on_body_exited(body: Node2D) -> void:
+	_bodies_in_range.erase(body)

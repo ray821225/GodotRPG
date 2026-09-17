@@ -8,6 +8,7 @@
 [ext_resource type="AudioStream" uid="uid://bclitwstydxfh" path="res://assets/audio/sfx/slash.mp3" id="5_slash_sfx"]
 [ext_resource type="Texture2D" uid="uid://c3vpuigg1dnn7" path="res://assets/ui/elements/Carved_9Slides.png" id="6_panel_bg"]
 [ext_resource type="Texture2D" uid="uid://d1s23p8dn0ay1" path="res://assets/ui/elements/Carved_3Slides.png" id="7_bar_frame"]
+[ext_resource type="PackedScene" path="res://scenes/ui/minimap.tscn" id="8_minimap"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_1hmtu"]
 radius = 23.0
@@ -264,6 +265,8 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
+[node name="Minimap" parent="HUD/HUDControl" instance=ExtResource("8_minimap")]
+
 [node name="GoldLabel" type="Label" parent="HUD/HUDControl" unique_id=1159006681]
 layout_mode = 0
 offset_left = 10.0
@@ -329,6 +332,17 @@ grow_horizontal = 2
 grow_vertical = 2
 show_percentage = false
 
+[node name="HPLabel" type="Label" parent="HUD/HUDControl/BottomPanel/HPBarFrame" unique_id=1014644437]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 10
+text = "0 / 0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="MPIcon" type="Label" parent="HUD/HUDControl/BottomPanel" unique_id=-483045092]
 layout_mode = 0
 offset_left = 14.0
@@ -362,6 +376,17 @@ offset_bottom = -6.0
 grow_horizontal = 2
 grow_vertical = 2
 show_percentage = false
+
+[node name="MPLabel" type="Label" parent="HUD/HUDControl/BottomPanel/MPBarFrame" unique_id=1014644438]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 10
+text = "0 / 0"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="ExpBarFrame" type="NinePatchRect" parent="HUD/HUDControl" unique_id=-483045089]
 layout_mode = 0

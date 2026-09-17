@@ -11,13 +11,23 @@ const DROP_ARC_HEIGHT: float = 100.0
 const COLLECT_POP_DURATION: float = 0.1
 const COLLECT_FLY_DURATION: float = 0.25
 
+## 掉落物存活 15 秒後消失，消失前 3 秒開始閃爍提示，最後淡出而非瞬間消失。
+const LIFETIME_DURATION: float = 15.0
+const BLINK_DURATION: float = 3.0
+const BLINK_INTERVAL: float = 0.15
+const FADE_OUT_DURATION: float = 0.3
+
 var item_id: String = ""
 var amount: int = 0
 var _collected: bool = false
+var _blink_tween: Tween
 
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var anim_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
+
+func _ready() -> void:
+	get_tree().create_timer(LIFETIME_DURATION - BLINK_DURATION).timeout.connect(_start_blink)
 
 ## 有 sprite_frames（例如金幣的旋轉動畫）就播動畫，沒有就照舊用靜態 texture。
 func setup(loot: LootData) -> void:
@@ -62,6 +72,8 @@ func collect(collector: Node) -> void:
 	if _collected:
 		return
 	_collected = true
+	if _blink_tween:
+		_blink_tween.kill()
 	collision_shape.set_deferred("disabled", true)
 
 	if collector.has_method("collect_item"):
@@ -77,3 +89,25 @@ func collect(collector: Node) -> void:
 	tween.tween_property(self, "scale", Vector2.ZERO, COLLECT_FLY_DURATION).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 	tween.tween_property(self, "modulate:a", 0.0, COLLECT_FLY_DURATION)
 	tween.chain().tween_callback(queue_free)
+
+## 消失倒數進入最後 3 秒：用循環 tween 讓透明度來回閃爍，提醒玩家快消失了。
+func _start_blink() -> void:
+	if _collected:
+		return
+	_blink_tween = create_tween()
+	_blink_tween.set_loops()
+	_blink_tween.tween_property(self, "modulate:a", 0.2, BLINK_INTERVAL)
+	_blink_tween.tween_property(self, "modulate:a", 1.0, BLINK_INTERVAL)
+	get_tree().create_timer(BLINK_DURATION).timeout.connect(_expire)
+
+## 閃爍時間到才真正消失，用淡出取代直接 queue_free，避免瞬間消失的突兀感。
+func _expire() -> void:
+	if _collected:
+		return
+	_collected = true
+	if _blink_tween:
+		_blink_tween.kill()
+	collision_shape.set_deferred("disabled", true)
+	var tween := create_tween()
+	tween.tween_property(self, "modulate:a", 0.0, FADE_OUT_DURATION)
+	tween.tween_callback(queue_free)

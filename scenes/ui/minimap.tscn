@@ -1,0 +1,77 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" uid="uid://c3vpuigg1dnn7" path="res://assets/ui/elements/Carved_9Slides.png" id="1_panel_bg"]
+[ext_resource type="Script" path="res://scenes/ui/minimap.gd" id="2_script"]
+
+[node name="Minimap" type="Control"]
+layout_mode = 0
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -252.0
+offset_top = 12.0
+offset_right = -12.0
+offset_bottom = 252.0
+grow_horizontal = 0
+mouse_filter = 2
+script = ExtResource("2_script")
+
+[node name="Frame" type="NinePatchRect" parent="."]
+layout_mode = 0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_panel_bg")
+patch_margin_left = 16
+patch_margin_top = 16
+patch_margin_right = 16
+patch_margin_bottom = 16
+
+[node name="ViewportContainer" type="SubViewportContainer" parent="."]
+layout_mode = 0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+stretch = true
+
+[node name="Viewport" type="SubViewport" parent="ViewportContainer"]
+transparent_bg = true
+handle_input_locally = false
+size = Vector2i(224, 224)
+
+[node name="MinimapCamera" type="Camera2D" parent="ViewportContainer/Viewport"]
+
+[node name="MarkersLayer" type="Control" parent="."]
+layout_mode = 0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+clip_contents = true
+
+[node name="PlayerDot" type="Panel" parent="MarkersLayer"]
+layout_mode = 0
+offset_right = 8.0
+offset_bottom = 8.0
+mouse_filter = 2
+
+[node name="PortalDot" type="Panel" parent="MarkersLayer"]
+visible = false
+layout_mode = 0
+offset_right = 8.0
+offset_bottom = 8.0
+mouse_filter = 2
