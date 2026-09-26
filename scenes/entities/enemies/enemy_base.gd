@@ -19,6 +19,12 @@ const DUST_EFFECT = preload("res://scenes/effects/dust_effect.tscn")
 const DEATH_SOUND = preload("res://assets/audio/sfx/dead.wav")
 const EnemyData = preload("res://scenes/entities/enemies/enemy_data.gd")
 const DamageMath = preload("res://scenes/entities/damage_math.gd")
+const Sfx = preload("res://scenes/support/sfx.gd")
+## 由 tools/gen_sfx.py 合成，要換素材直接覆蓋同名 wav
+const HIT_SOUND = preload("res://assets/audio/sfx/enemy_hit.wav")
+## 同一瞬間多隻被打中（例如 AOE）只播一次，避免疊音爆音
+const HIT_SOUND_MIN_INTERVAL_MS: int = 50
+static var _last_hit_sound_ms: int = -1000
 const KNOCKBACK_ON_HIT: float = 14.0
 const WANDER_STUCK_CHECK_INTERVAL: float = 0.4
 const WANDER_STUCK_MIN_DISTANCE: float = 12.0
@@ -268,6 +274,7 @@ func take_damage(amount: int, type: DamageNumber.DamageType = DamageNumber.Damag
 	health_bar.value = hp
 	_spawn_damage_number(final_damage, type)
 	_flash_damage()
+	_play_hit_sound(type)
 	if attacker:
 		apply_knockback(global_position - attacker.global_position, KNOCKBACK_ON_HIT)
 		# 不管有沒有主動索敵，被打中一律反過來鎖定攻擊者、開始追擊。
@@ -290,6 +297,16 @@ func _spawn_damage_number(amount: int, type: DamageNumber.DamageType) -> void:
 	var dn = DAMAGE_NUMBER.instantiate()
 	get_tree().current_scene.add_child(dn)
 	dn.setup(amount, global_position + Vector2(randf_range(-8.0, 8.0), -45.0), type)
+
+## 反彈傷害有自己的命中音效（reflect_orb.gd），這裡不重複播
+func _play_hit_sound(type: DamageNumber.DamageType) -> void:
+	if type == DamageNumber.DamageType.REFLECT:
+		return
+	var now: int = Time.get_ticks_msec()
+	if now - _last_hit_sound_ms < HIT_SOUND_MIN_INTERVAL_MS:
+		return
+	_last_hit_sound_ms = now
+	Sfx.play(self, HIT_SOUND, -4.0, 0.12)
 
 func _flash_damage() -> void:
 	sprite.modulate = Color(1.0, 0.3, 0.3)

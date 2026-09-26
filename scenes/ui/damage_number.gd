@@ -7,9 +7,13 @@ enum DamageType {
 	ICE,
 	LIGHTNING,
 	TAKEN,
+	ABSORB, # 反彈護盾吸收（玩家身上，不扣血）
+	REFLECT, # 反彈回敵人的傷害，不會再被反彈，避免互彈無限循環
 }
 
 const COLORS := {
+	DamageType.ABSORB: Color(0.6, 0.85, 1, 1),
+	DamageType.REFLECT: Color(0.85, 0.55, 1, 1),
 	DamageType.PHYSICAL: Color(0.75, 0.75, 0.78, 1),
 	DamageType.FIRE: Color(1, 0.55, 0.15, 1),
 	DamageType.ICE: Color(0.55, 0.85, 1, 1),
@@ -18,6 +22,8 @@ const COLORS := {
 }
 
 const BORDER_COLORS := {
+	DamageType.ABSORB: Color(0.0, 0.2, 0.35, 1),
+	DamageType.REFLECT: Color(0.25, 0.0, 0.4, 1),
 	DamageType.PHYSICAL: Color(0.1, 0.1, 0.12, 1),
 	DamageType.FIRE: Color(0.4, 0.1, 0.0, 1),
 	DamageType.ICE: Color(0.0, 0.2, 0.4, 1),

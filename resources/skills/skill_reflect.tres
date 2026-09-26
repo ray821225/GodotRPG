@@ -1,0 +1,15 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://scenes/skills/reflect_skill_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+duration = 3.0
+multiplier = 1.0
+multiplier_per_level = 0.1
+id = &"reflect"
+display_name = "反彈護盾"
+roles = Array[String](["Knight"])
+cooldown = 10.0
+mp_cost = 15
+mp_cost_per_level = 1

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://gjovph8gpg3x"
-path="res://.godot/imported/Mana-Sheet.png-9ce0aab0cbd40071ce196ba7331dadc5.ctex"
+uid="uid://b6ul1xgntvxpo"
+path="res://.godot/imported/groud_attack2.png-dd991417fd536be6526cb0fc9a7e8503.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects/skills/generic/Mana-Sheet.png"
-dest_files=["res://.godot/imported/Mana-Sheet.png-9ce0aab0cbd40071ce196ba7331dadc5.ctex"]
+source_file="res://assets/effects/groud_attack2.png"
+dest_files=["res://.godot/imported/groud_attack2.png-dd991417fd536be6526cb0fc9a7e8503.ctex"]
 
 [params]
 

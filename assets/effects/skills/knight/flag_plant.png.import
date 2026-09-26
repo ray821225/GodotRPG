@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dgbme02abq00j"
-path="res://.godot/imported/sword_nova_sheet.png-0aafd020949b74e0d362d0a77008fbb4.ctex"
+uid="uid://bciig0smrcf74"
+path="res://.godot/imported/flag_plant.png-88219af9b916f6770846cd7b836634b1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects/sword_nova_sheet.png"
-dest_files=["res://.godot/imported/sword_nova_sheet.png-0aafd020949b74e0d362d0a77008fbb4.ctex"]
+source_file="res://assets/effects/skills/knight/flag_plant.png"
+dest_files=["res://.godot/imported/flag_plant.png-88219af9b916f6770846cd7b836634b1.ctex"]
 
 [params]
 

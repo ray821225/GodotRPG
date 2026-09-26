@@ -76,7 +76,7 @@ target_spawn_point = &"SpawnFromTestMap"
 position = Vector2(874, 709)
 
 [node name="SpawnAreaSlimeCyan" type="Node2D" parent="." unique_id=722092931]
-position = Vector2(1917, 602)
+position = Vector2(1721, 598)
 script = ExtResource("19_rxdrk")
 enemy_scene = ExtResource("14_slime")
 enemy_data = ExtResource("20_l4ftj")

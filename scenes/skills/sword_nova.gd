@@ -5,10 +5,13 @@ extends Node2D
 ## PhysicsDirectSpaceState2D 直接查詢（同 dynamite.gd 的落地爆炸邏輯），只在衝擊波
 ## 剛炸開的那一幀（IMPACT_FRAME）算一次傷害，其餘幀純視覺淡出，不會重複命中。
 ## 劍落地瞬間就消失，接手播放衝擊波動畫。
+## 同一支腳本可套不同素材：幀數直接讀 GroundSprite 的 hframes；
+## 素材本身已畫好劍落下（例如 groud_attack2.png）時關掉 sword_drop 即可。
 
-const FRAME_COUNT: int = 7
-const FPS: float = 14.0
-const IMPACT_FRAME: int = 0
+@export var sword_drop: bool = true
+@export var fps: float = 14.0
+## 在第幾幀造成傷害（0 起算），設在衝擊波炸開的那一幀
+@export var impact_frame: int = 0
 
 const FALL_HEIGHT: float = 120.0
 const FALL_DURATION: float = 0.13
@@ -29,6 +32,12 @@ func _ready() -> void:
 	ground_sprite.visible = false
 	queue_redraw()
 
+	if not sword_drop:
+		sword_pivot.visible = false
+		ground_sprite.visible = true
+		_play_ground_effect()
+		return
+
 	var rest_y: float = sword_pivot.position.y
 	sword_pivot.position.y = rest_y - FALL_HEIGHT
 
@@ -43,13 +52,13 @@ func _ready() -> void:
 	_play_ground_effect()
 
 func _play_ground_effect() -> void:
-	for i in range(FRAME_COUNT):
+	for i in range(ground_sprite.hframes):
 		if not is_inside_tree():
 			return
 		ground_sprite.frame = i
-		if i == IMPACT_FRAME:
+		if i == impact_frame:
 			_deal_damage()
-		await get_tree().create_timer(1.0 / FPS).timeout
+		await get_tree().create_timer(1.0 / fps).timeout
 	queue_free()
 
 func _draw() -> void:

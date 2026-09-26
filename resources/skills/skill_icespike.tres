@@ -1,0 +1,17 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://scenes/skills/projectile_skill_data.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/skills/icespike.tscn" id="2_scene"]
+
+[resource]
+script = ExtResource("1_script")
+scene = ExtResource("2_scene")
+damage = 25
+damage_per_level = 5
+speed = 450.0
+id = &"icespike"
+display_name = "冰錐"
+roles = Array[String](["Wizard"])
+cooldown = 1.0
+mp_cost = 8
+mp_cost_per_level = 1

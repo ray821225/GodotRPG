@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ckwhohx8swf8h"
-path="res://.godot/imported/projectile.png-661732d28cdea2409e3f8be9a0ee3398.ctex"
+uid="uid://hklq05q3br7t"
+path="res://.godot/imported/skill_mana_shield.png-a044815890d7746e71ef3fd1b33dbd05.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects/skills/generic/projectile.png"
-dest_files=["res://.godot/imported/projectile.png-661732d28cdea2409e3f8be9a0ee3398.ctex"]
+source_file="res://assets/effects/skill_mana_shield.png"
+dest_files=["res://.godot/imported/skill_mana_shield.png-a044815890d7746e71ef3fd1b33dbd05.ctex"]
 
 [params]
 

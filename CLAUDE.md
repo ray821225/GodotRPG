@@ -18,7 +18,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 沒有測試框架、建置腳本或 linter；驗證方式是實際執行遊戲並觀察 `get_debug_output`。
 
-**輸入對應**（`project.godot` 定義）：`left`/`right`/`up`/`down` = WASD；攻擊為滑鼠左鍵（在腳本中直接以 `MOUSE_BUTTON_LEFT` 處理，非 InputMap action）。
+**輸入對應**（`project.godot` 定義）：`left`/`right`/`up`/`down` = WASD；攻擊為滑鼠左鍵（在腳本中直接以 `MOUSE_BUTTON_LEFT` 處理，非 InputMap action）；`block` = 空白鍵；技能欄 `skill_slot_1`~`skill_slot_6` = Q E R T F G（按鍵只對應欄位，欄位放哪個技能見下方「技能系統」）。
 
 ## 架構
 
@@ -57,6 +57,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **資料驅動的顏色範例（史萊姆）**：`scenes/entities/enemies/slime.tscn` 是共用場景（`AnimatedSprite2D` 不內建 `sprite_frames`，由 `_ready()` 依 `data` 動態指派）。7 個顏色分別是 `resources/enemies/slime_data_<color>.tres`（數值）+ `resources/enemies/slime_frames_<color>.tres`（動畫幀，來源圖在 `assets/sprites/enemies/slime/`）。新增一個顏色/變種：複製一份 `slime_data_*.tres`、指到新的 `SpriteFrames` resource，在地圖場景 instance `slime.tscn`、把 `data` 欄位指過去即可，不用寫程式碼或複製場景。
 
 - **訓練假人（稻草人）**：`training_dummy.tscn` + `training_dummy.gd extends enemy_base.gd`，資料為 `resources/enemies/training_dummy_data.tres`（高血量、不掉落），動畫 `scarecrow_frames.tres`（idle/run 單幀、hurt 受擊搖晃）。覆寫掉漫遊/追擊/擊退/攻擊，被打只播 `hurt`。
+
+### 技能系統：SkillData（新增技能請沿用）
+
+跟敵人一樣拆成「資料」與「效果」：
+
+- **`scenes/skills/skill_data.gd`**（`Resource`）：共用欄位 `id`（冷卻/等級/存檔的 key，建立後不要改）、`display_name`、`icon`、`roles`（可用職業，空 = 全職業）、`max_level`、`cooldown`、`mp_cost`。`*_per_level` 欄位是每升一級的增量，用 `scaled(base, per_level, level)` 換算。子類別覆寫 `can_cast(caster)`（額外條件）與 `cast(caster, level)`（實際效果）。
+- **子類別**：`sword_nova_skill_data.gd`（落地 AOE，換 `scene` 即換素材）、`projectile_skill_data.gd`（直線投射物：火球/冰錐）、`reflect_skill_data.gd`（反彈護盾，邏輯在 `reflect_shield.gd`，玩家 `take_damage()` 在 `reflect_shield` 有值時改呼叫 `absorb()`）、`banner_skill_data.gd`（放置型增益：`war_banner.tscn` 插在滑鼠位置，限 `cast_range` 內）。
+- **增益契約**（duck typing）：`add_stat_modifier(source, stat, percent)` / `remove_stat_modifier(source)`，以來源節點為 key、同來源不疊加，由來源負責移除（戰旗在離開範圍/到期/`_exit_tree` 時移除）。玩家受傷一律用 `get_defense()`（基礎 `def` × (1 + 加成)），不要直接讀 `def`。
+- **音效**：`tools/gen_sfx.py` 以純 Python 合成（固定亂數種子），`python tools/gen_sfx.py assets/audio/sfx` 重新產生；一次性音效用 `scenes/support/sfx.gd` 的 `Sfx.play()`（掛在 current_scene、播完自動釋放）。
+- **資料**：`resources/skills/skill_*.tres`。法師的 `skill_fireball`/`skill_icespike` 已建好但沒放進騎士技能欄。
+- **玩家端**（`player.gd`）：`skill_slots: Array[SkillData]` 對應 6 個欄位，`cast_skill_slot(i)` 統一檢查職業/冷卻/MP/`can_cast()` → `cast()` → 扣 MP、進冷卻（`_skill_ready_at`，以技能 id 為 key，每個技能各自冷卻）。`skill_levels` 為技能 id → 等級，技能點數/技能樹尚未實作，目前一律 1 級。MP 由 `mp_regen_per_sec` 自然回復。
+- 新增技能：寫效果場景（需要的話）+ 對應類型的 `.tres`，放進 `skill_slots`；只有新的「施放方式」才需要新增 SkillData 子類別。
 
 ### 掉落物系統
 

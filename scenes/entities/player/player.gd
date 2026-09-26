@@ -13,10 +13,10 @@ const DEATH_EFFECT = preload("res://scenes/effects/death_effect.tscn")
 const LEVELUP_EFFECT = preload("res://scenes/effects/levelup_effect.tscn")
 const BLOCK_EFFECT = preload("res://scenes/effects/block_effect.tscn")
 const COUNTER_EFFECT = preload("res://scenes/effects/counter_effect.tscn")
-const FIREBALL = preload("res://scenes/skills/fireball.tscn")
-const ICE_SPIKE = preload("res://scenes/skills/icespike.tscn")
-const SWORD_NOVA = preload("res://scenes/skills/sword_nova.tscn")
-const SWORD_NOVA_CAST_OFFSET: float = 50.0
+const SkillData = preload("res://scenes/skills/skill_data.gd")
+const REFLECT_SHIELD = preload("res://scenes/skills/reflect_shield.gd")
+## 技能欄位數，對應 InputMap 的 skill_slot_1 ~ skill_slot_N（預設 Q E R T F G）
+const SKILL_SLOT_COUNT: int = 6
 const RoleData = preload("res://scenes/entities/player/role_data.gd")
 const DamageMath = preload("res://scenes/entities/damage_math.gd")
 const ATTACK_ANIM_LENGTH: float = 0.6
@@ -62,15 +62,18 @@ const EXP_CURVE_EXPONENT: float = 2.2
 @export var counter_damage_bonus: float = 0.25
 
 @export_category("Skills")
-@export var fireball_damage: int = 30
-@export var fireball_speed: float = 500.0
-@export var fireball_cooldown: float = 1.0
-@export var icespike_damage: int = 25
-@export var icespike_speed: float = 450.0
-@export var icespike_cooldown: float = 1.0
-@export var sword_nova_damage: int = 40
-@export var sword_nova_radius: Vector2 = Vector2(70.0, 40.0) # 橢圓判定半軸（水平, 垂直）
-@export var sword_nova_cooldown: float = 0.0 # 暫時關閉冷卻方便測試，測完記得改回 3.0
+## 技能欄：第 N 格對應 skill_slot_N 按鍵，放 resources/skills/ 的 SkillData，空格放 null。
+## 法師技能（skill_fireball / skill_icespike.tres）目前沒放進來，騎士用不到。
+@export var skill_slots: Array[SkillData] = [
+	null,
+	null,
+	preload("res://resources/skills/skill_sword_nova.tres"),
+	preload("res://resources/skills/skill_sword_nova_2.tres"),
+	preload("res://resources/skills/skill_reflect.tres"),
+	preload("res://resources/skills/skill_war_banner.tres"),
+]
+## 每秒自然回復的 MP
+@export var mp_regen_per_sec: float = 2.0
 @export var charge_slash_damage_multiplier: float = 50
 @export var charge_slash_charge_time: float = 0.5
 @export var charge_slash_move_speed_multiplier: float = 0.4
@@ -88,9 +91,17 @@ var block_ready: bool = true
 var is_parry_active: bool = false
 var block_success: bool = false
 var can_counter: bool = false
-var fireball_ready: bool = true
-var icespike_ready: bool = true
-var sword_nova_ready: bool = true
+## 技能 id -> 技能等級。技能點數/技能樹還沒做，沒有記錄的一律當 1 級
+var skill_levels: Dictionary = {}
+## 技能 id -> 冷卻結束的時間點（秒，Time.get_ticks_msec 換算）
+var _skill_ready_at: Dictionary = {}
+var _mp_regen_buffer: float = 0.0
+## 反彈護盾啟動中才有值（由 reflect_skill_data.gd 設定、reflect_shield.gd 釋放時清掉），
+## take_damage() 以此判斷要不要改成吸收
+var reflect_shield: REFLECT_SHIELD = null
+## 暫時性數值加成：來源節點 -> {屬性: 加成比例}，例如戰旗 {&"def": 0.3} = 防禦 +30%。
+## 以來源為 key，同一來源重複套用不會疊加；來源負責在效果結束時 remove_stat_modifier()。
+var _stat_modifiers: Dictionary = {}
 var is_charging_slash: bool = false
 var _charge_slash_ready: bool = false
 var _charge_scale_tween: Tween
@@ -200,12 +211,14 @@ func _unhandled_input(event: InputEvent) -> void:
 			_on_left_click_released()
 	elif event.is_action_pressed("block"):
 		try_block()
-	elif event.is_action_pressed("skill_fireball"):
-		cast_fireball()
-	elif event.is_action_pressed("skill_icespike"):
-		cast_icespike()
-	elif event.is_action_pressed("skill_sword_nova"):
-		cast_sword_nova()
+	else:
+		for i in range(SKILL_SLOT_COUNT):
+			if event.is_action_pressed("skill_slot_%d" % (i + 1)):
+				cast_skill_slot(i)
+				break
+
+func _process(delta: float) -> void:
+	_regen_mp(delta)
 
 func _physics_process(_delta: float) -> void:
 	if state == State.ATTACK or state == State.DEAD:
@@ -248,62 +261,48 @@ func _cancel_block() -> void:
 	is_parry_active = false
 	_set_block_visual(false)
 
-func cast_fireball() -> void:
-	if not fireball_ready or state == State.DEAD:
+## 技能欄施放：職業/冷卻/MP/技能自訂條件都通過才施放，施放後扣 MP、進冷卻。
+## 實際效果由各 SkillData 子類別的 cast() 處理（見 scenes/skills/*_skill_data.gd）。
+func cast_skill_slot(index: int) -> void:
+	if index < 0 or index >= skill_slots.size() or state == State.DEAD:
 		return
-	fireball_ready = false
-
-	var mouse_pos: Vector2 = get_global_mouse_position()
-	var muzzle_pos: Vector2 = global_position + Vector2(0, -32)
-	var cast_dir: Vector2 = (mouse_pos - muzzle_pos).normalized()
-
-	var fireball = FIREBALL.instantiate()
-	get_tree().current_scene.add_child(fireball)
-	fireball.damage = fireball_damage
-	fireball.speed = fireball_speed
-	fireball.launch(muzzle_pos + cast_dir * 30, cast_dir)
-
-	await get_tree().create_timer(fireball_cooldown).timeout
-	fireball_ready = true
-
-func cast_icespike() -> void:
-	if not icespike_ready or state == State.DEAD:
+	var skill: SkillData = skill_slots[index]
+	if skill == null or not skill.is_usable_by(role):
 		return
-	icespike_ready = false
-
-	var mouse_pos: Vector2 = get_global_mouse_position()
-	var muzzle_pos: Vector2 = global_position + Vector2(0, -32)
-	var cast_dir: Vector2 = (mouse_pos - muzzle_pos).normalized()
-
-	var icespike = ICE_SPIKE.instantiate()
-	get_tree().current_scene.add_child(icespike)
-	icespike.damage = icespike_damage
-	icespike.speed = icespike_speed
-	icespike.launch(muzzle_pos + cast_dir * 30, cast_dir)
-
-	await get_tree().create_timer(icespike_cooldown).timeout
-	icespike_ready = true
-
-## AOE 劍擊：往滑鼠方向的角色前方一點施放，範圍內敵人一次受到橢圓傷害判定（見 sword_nova.gd）。
-func cast_sword_nova() -> void:
-	if not sword_nova_ready or state == State.DEAD:
+	var now: float = Time.get_ticks_msec() / 1000.0
+	if now < _skill_ready_at.get(skill.id, 0.0):
 		return
-	sword_nova_ready = false
+	var skill_level: int = get_skill_level(skill)
+	var cost: int = skill.get_mp_cost(skill_level)
+	if mp < cost or not skill.can_cast(self):
+		return
+	skill.cast(self, skill_level)
+	mp -= cost
+	_update_mp_display()
+	_skill_ready_at[skill.id] = now + skill.cooldown
 
-	var mouse_pos: Vector2 = get_global_mouse_position()
-	var cast_dir: Vector2 = (mouse_pos - global_position).normalized()
-	if cast_dir.length() < 0.01:
-		cast_dir = Vector2.DOWN
+func get_skill_level(skill: SkillData) -> int:
+	return clampi(skill_levels.get(skill.id, 1), 1, skill.max_level)
 
-	var nova = SWORD_NOVA.instantiate()
-	nova.global_position = global_position + cast_dir * SWORD_NOVA_CAST_OFFSET
-	nova.damage = sword_nova_damage
-	nova.radius = sword_nova_radius
-	nova.attacker = self
-	get_tree().current_scene.add_child(nova)
+## 剩餘冷卻秒數（之後 HUD 技能欄顯示冷卻用）
+func get_skill_cooldown_left(skill: SkillData) -> float:
+	return maxf(_skill_ready_at.get(skill.id, 0.0) - Time.get_ticks_msec() / 1000.0, 0.0)
 
-	await get_tree().create_timer(sword_nova_cooldown).timeout
-	sword_nova_ready = true
+## MP 以小數累積、滿 1 才加，避免每幀 int 捨去後永遠回不上來
+func _regen_mp(delta: float) -> void:
+	if state == State.DEAD or mp >= max_mp:
+		_mp_regen_buffer = 0.0
+		return
+	_mp_regen_buffer += mp_regen_per_sec * delta
+	if _mp_regen_buffer >= 1.0:
+		var gained: int = int(_mp_regen_buffer)
+		_mp_regen_buffer -= gained
+		mp = mini(mp + gained, max_mp)
+		_update_mp_display()
+
+func _update_mp_display() -> void:
+	mana_bar.value = mp
+	_update_mp_label()
 
 func movement_loop() -> void:
 	move_direction.x = int(Input.is_action_pressed("right")) - int(Input.is_action_pressed("left"))
@@ -503,6 +502,12 @@ func deal_damage(is_counter: bool = false, damage_multiplier: float = 1.0, singl
 func take_damage(amount: int, type: DamageNumber.DamageType = DamageNumber.DamageType.PHYSICAL, attacker: Node2D = null) -> void:
 	if state == State.DEAD:
 		return
+	# 反彈護盾優先於格擋：全額吸收、不扣血，交給護盾記帳，結束時反彈
+	if reflect_shield:
+		var absorbed: int = DamageMath.calculate(amount, get_defense())
+		reflect_shield.absorb(absorbed, type, attacker)
+		_spawn_damage_number(absorbed, DamageNumber.DamageType.ABSORB)
+		return
 	var blocked: bool = false
 	if is_parry_active:
 		blocked = true
@@ -522,7 +527,7 @@ func take_damage(amount: int, type: DamageNumber.DamageType = DamageNumber.Damag
 		if amount <= 0:
 			return
 
-	var final_damage: int = DamageMath.calculate(amount, def)
+	var final_damage: int = DamageMath.calculate(amount, get_defense())
 	hp -= final_damage
 	health_bar.value = hp
 	_update_hp_label()
@@ -532,6 +537,26 @@ func take_damage(amount: int, type: DamageNumber.DamageType = DamageNumber.Damag
 		apply_knockback(global_position - attacker.global_position, KNOCKBACK_ON_HIT)
 	if hp <= 0:
 		die()
+
+## 增益契約（duck typing）：戰旗等效果對範圍內有這兩個方法的節點套用/移除加成
+func add_stat_modifier(source: Object, stat: StringName, percent: float) -> void:
+	var mods: Dictionary = _stat_modifiers.get(source, {})
+	mods[stat] = percent
+	_stat_modifiers[source] = mods
+
+func remove_stat_modifier(source: Object) -> void:
+	_stat_modifiers.erase(source)
+
+## 所有來源的同屬性加成相加，例如兩個 +30% = +60%
+func get_stat_bonus(stat: StringName) -> float:
+	var total: float = 0.0
+	for mods in _stat_modifiers.values():
+		total += mods.get(stat, 0.0)
+	return total
+
+## 實際防禦 = 基礎防禦 × (1 + 加成)，受傷計算一律用這個而不是直接讀 def
+func get_defense() -> float:
+	return def * (1.0 + get_stat_bonus(&"def"))
 
 ## 往 direction 方向輕輕滑一小段距離，打中/被打中時用來做「有被擊中」的手感回饋。
 func apply_knockback(direction: Vector2, strength: float) -> void:
@@ -608,10 +633,10 @@ func _spawn_counter_effect(target_position: Vector2) -> void:
 	get_tree().current_scene.add_child(effect)
 	effect.global_position = target_position + Vector2(0, -30)
 
-func _spawn_damage_number(amount: int) -> void:
+func _spawn_damage_number(amount: int, type: DamageNumber.DamageType = DamageNumber.DamageType.TAKEN) -> void:
 	var dn = DAMAGE_NUMBER.instantiate()
 	get_tree().current_scene.add_child(dn)
-	dn.setup(amount, global_position + Vector2(randf_range(-8.0, 8.0), -70.0), DamageNumber.DamageType.TAKEN)
+	dn.setup(amount, global_position + Vector2(randf_range(-8.0, 8.0), -70.0), type)
 
 func _flash_damage() -> void:
 	$Sprite2D.modulate = Color(1.0, 0.3, 0.3)
@@ -622,6 +647,9 @@ func die() -> void:
 	if state == State.DEAD:
 		return
 	state = State.DEAD
+	if reflect_shield:
+		reflect_shield.cancel()
+		reflect_shield = null
 	$Sprite2D.visible = false
 	hit_box.monitoring = false
 	is_charging_slash = false
