@@ -25,16 +25,41 @@ var _blink_tween: Tween
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var anim_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
+@onready var name_tag: Label = $NameTag
 
 func _ready() -> void:
 	get_tree().create_timer(LIFETIME_DURATION - BLINK_DURATION).timeout.connect(_start_blink)
+	# 滑鼠 hover 顯示名稱，同 enemy_base.gd 的名牌做法
+	input_pickable = true
+	mouse_entered.connect(_on_mouse_entered)
+	mouse_exited.connect(_on_mouse_exited)
+
+## 金幣依金額分級外觀：[金額下限, 顯示名稱, 旋轉動畫]，由大到小比對。
+const COIN_TIERS: Array = [
+	[1000, "金幣", preload("res://resources/items/gold_spin_frames.tres")],
+	[100, "銀幣", preload("res://resources/items/silver_spin_frames.tres")],
+	[1, "銅幣", preload("res://resources/items/bronze_spin_frames.tres")],
+]
 
 ## 有 sprite_frames（例如金幣的旋轉動畫）就播動畫，沒有就照舊用靜態 texture。
-func setup(loot: LootData) -> void:
+## amount_override >= 0 時覆寫 LootData 的數量（金幣金額由敵人資料隨機決定）。
+func setup(loot: LootData, amount_override: int = -1) -> void:
 	item_id = loot.item_id
-	amount = loot.amount
-	if loot.sprite_frames:
-		anim_sprite.sprite_frames = loot.sprite_frames
+	amount = amount_override if amount_override >= 0 else loot.amount
+	var label_name: String = loot.display_name if loot.display_name != "" else item_id
+	var frames: SpriteFrames = loot.sprite_frames
+	# 金幣一律顯示金額（例如「5 銅幣」），其他道具數量 >1 才顯示「x N」
+	if item_id == "coin":
+		for tier in COIN_TIERS:
+			if amount >= tier[0]:
+				label_name = tier[1]
+				frames = tier[2]
+				break
+		name_tag.text = "%d %s" % [amount, label_name]
+	else:
+		name_tag.text = "%s x%d" % [label_name, amount] if amount > 1 else label_name
+	if frames:
+		anim_sprite.sprite_frames = frames
 		anim_sprite.play(loot.sprite_frames.get_animation_names()[0])
 		anim_sprite.visible = true
 		sprite.visible = false
@@ -72,6 +97,7 @@ func collect(collector: Node) -> void:
 	if _collected:
 		return
 	_collected = true
+	name_tag.visible = false
 	if _blink_tween:
 		_blink_tween.kill()
 	collision_shape.set_deferred("disabled", true)
@@ -105,9 +131,17 @@ func _expire() -> void:
 	if _collected:
 		return
 	_collected = true
+	name_tag.visible = false
 	if _blink_tween:
 		_blink_tween.kill()
 	collision_shape.set_deferred("disabled", true)
 	var tween := create_tween()
 	tween.tween_property(self, "modulate:a", 0.0, FADE_OUT_DURATION)
 	tween.tween_callback(queue_free)
+
+func _on_mouse_entered() -> void:
+	if not _collected:
+		name_tag.visible = true
+
+func _on_mouse_exited() -> void:
+	name_tag.visible = false

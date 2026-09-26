@@ -4,6 +4,8 @@ extends Resource
 ## coin 用 amount 當金額，其他道具（例如肉）用 amount 當數量。
 
 @export var item_id: String = "coin"
+## 滑鼠 hover 掉落物時顯示的名稱，留空則 fallback 顯示 item_id。
+@export var display_name: String = ""
 @export var texture: Texture2D
 ## 有填的話優先用這個播放動畫（例如金幣的旋轉效果），沒填才 fallback 用上面的靜態 texture。
 @export var sprite_frames: SpriteFrames

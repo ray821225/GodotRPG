@@ -15,6 +15,8 @@ const BLOCK_EFFECT = preload("res://scenes/effects/block_effect.tscn")
 const COUNTER_EFFECT = preload("res://scenes/effects/counter_effect.tscn")
 const FIREBALL = preload("res://scenes/skills/fireball.tscn")
 const ICE_SPIKE = preload("res://scenes/skills/icespike.tscn")
+const SWORD_NOVA = preload("res://scenes/skills/sword_nova.tscn")
+const SWORD_NOVA_CAST_OFFSET: float = 50.0
 const RoleData = preload("res://scenes/entities/player/role_data.gd")
 const DamageMath = preload("res://scenes/entities/damage_math.gd")
 const ATTACK_ANIM_LENGTH: float = 0.6
@@ -22,6 +24,11 @@ const ATTACK_LOCK_DURATION: float = 0.3
 const ATTACK_HIT_DELAY: float = 0.12
 const KNOCKBACK_ON_HIT: float = 10.0
 const KNOCKBACK_ON_BLOCK: float = 22.0
+## 攻擊判定的起點要對齊「敵人」HurtBox 的身體高度偏移，而不是腳下原點或玩家自己的
+## HurtBox 偏移，否則上/下攻擊會因偏移疊加/抵消而距離不對稱。各敵人 HurtBox 偏移
+## 落在 -16 ~ -30 之間（slime -16、lobster/mushroom -24、frog -30），這裡取中間值。
+const ATTACK_ORIGIN_OFFSET: Vector2 = Vector2(0, -20)
+const ATTACK_REACH: float = 40.0
 const CHARGE_SLASH_TEXTURE_BIG = preload("res://assets/effects/skills/generic/charg_big.png")
 const CHARGE_SLASH_FRAME_COUNT: int = 12
 const CHARGE_SLASH_RELEASE_DURATION: float = 0.25
@@ -61,6 +68,9 @@ const EXP_CURVE_EXPONENT: float = 2.2
 @export var icespike_damage: int = 25
 @export var icespike_speed: float = 450.0
 @export var icespike_cooldown: float = 1.0
+@export var sword_nova_damage: int = 40
+@export var sword_nova_radius: Vector2 = Vector2(70.0, 40.0) # 橢圓判定半軸（水平, 垂直）
+@export var sword_nova_cooldown: float = 0.0 # 暫時關閉冷卻方便測試，測完記得改回 3.0
 @export var charge_slash_damage_multiplier: float = 50
 @export var charge_slash_charge_time: float = 0.5
 @export var charge_slash_move_speed_multiplier: float = 0.4
@@ -80,6 +90,7 @@ var block_success: bool = false
 var can_counter: bool = false
 var fireball_ready: bool = true
 var icespike_ready: bool = true
+var sword_nova_ready: bool = true
 var is_charging_slash: bool = false
 var _charge_slash_ready: bool = false
 var _charge_scale_tween: Tween
@@ -130,6 +141,7 @@ func _ready() -> void:
 	gold_label.text = "Gold: %d" % gold
 	_update_exp_label()
 	GameManager.consume_pending_spawn(self)
+	interact_area.area_entered.connect(_on_interact_area_entered)
 
 ## 把 charg_big 這張橫向排列的蓄力精靈圖切成 CHARGE_SLASH_FRAME_COUNT 格，組成 AnimatedSprite2D
 ## 可播放的 charge 動畫（時長對齊 charge_slash_charge_time，設為 loop 讓蓄滿等待放開期間不會停在最後一偵）。
@@ -192,8 +204,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		cast_fireball()
 	elif event.is_action_pressed("skill_icespike"):
 		cast_icespike()
-	elif event.is_action_pressed("interact"):
-		_try_interact()
+	elif event.is_action_pressed("skill_sword_nova"):
+		cast_sword_nova()
 
 func _physics_process(_delta: float) -> void:
 	if state == State.ATTACK or state == State.DEAD:
@@ -272,6 +284,27 @@ func cast_icespike() -> void:
 	await get_tree().create_timer(icespike_cooldown).timeout
 	icespike_ready = true
 
+## AOE 劍擊：往滑鼠方向的角色前方一點施放，範圍內敵人一次受到橢圓傷害判定（見 sword_nova.gd）。
+func cast_sword_nova() -> void:
+	if not sword_nova_ready or state == State.DEAD:
+		return
+	sword_nova_ready = false
+
+	var mouse_pos: Vector2 = get_global_mouse_position()
+	var cast_dir: Vector2 = (mouse_pos - global_position).normalized()
+	if cast_dir.length() < 0.01:
+		cast_dir = Vector2.DOWN
+
+	var nova = SWORD_NOVA.instantiate()
+	nova.global_position = global_position + cast_dir * SWORD_NOVA_CAST_OFFSET
+	nova.damage = sword_nova_damage
+	nova.radius = sword_nova_radius
+	nova.attacker = self
+	get_tree().current_scene.add_child(nova)
+
+	await get_tree().create_timer(sword_nova_cooldown).timeout
+	sword_nova_ready = true
+
 func movement_loop() -> void:
 	move_direction.x = int(Input.is_action_pressed("right")) - int(Input.is_action_pressed("left"))
 	move_direction.y = int(Input.is_action_pressed("down")) - int(Input.is_action_pressed("up"))
@@ -346,7 +379,7 @@ func attack() -> void:
 	animation_tree.set("parameters/attack/TimeScale/scale", ATTACK_ANIM_LENGTH / ATTACK_LOCK_DURATION)
 	update_animation()
 
-	hit_box.position = attack_dir * 40
+	hit_box.position = ATTACK_ORIGIN_OFFSET + attack_dir * ATTACK_REACH
 	hit_box.monitoring = true
 	slash_sound.play()
 
@@ -414,7 +447,7 @@ func _fire_charge_slash() -> void:
 	animation_tree.set("parameters/attack/TimeScale/scale", ATTACK_ANIM_LENGTH / ATTACK_LOCK_DURATION)
 	update_animation()
 
-	hit_box.position = attack_dir * 40
+	hit_box.position = ATTACK_ORIGIN_OFFSET + attack_dir * ATTACK_REACH
 	hit_box.monitoring = true
 
 	var fade_tween := create_tween()
@@ -508,11 +541,10 @@ func apply_knockback(direction: Vector2, strength: float) -> void:
 	var tween = create_tween()
 	tween.tween_property(self, "global_position", target_pos, 0.12).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
-## 按互動鍵時呼叫：對 InteractArea 範圍內所有掉落物一次拾取（怪物可能一次掉好幾個）。
-func _try_interact() -> void:
-	for area in interact_area.get_overlapping_areas():
-		if area.has_method("collect"):
-			area.collect(self)
+## InteractArea 碰到掉落物就自動拾取，不用再按互動鍵。
+func _on_interact_area_entered(area: Area2D) -> void:
+	if area.has_method("collect"):
+		area.collect(self)
 
 ## 拾取契約：任何 Pickup 撿起來都呼叫這個方法。coin 直接加金幣，其他道具先進 inventory 計數。
 func collect_item(item_id: String, amount: int) -> void:

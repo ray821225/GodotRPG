@@ -10,5 +10,6 @@ region = Rect2(96, 160, 32, 32)
 [resource]
 script = ExtResource("1_script")
 item_id = "potion_mana"
+display_name = "魔力藥水"
 texture = SubResource("AtlasTexture_flask_blue")
 weight = 8.0

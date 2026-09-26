@@ -56,13 +56,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **近戰型別（目前唯一實作）**：`scenes/entities/enemies/slime.gd extends enemy_base.gd`，用 `HitBox` 判定傷害；`data.attack_animations`（`Array[StringName]`）可放多組動畫名稱、每次攻擊隨機挑一種播放，動畫實際長度直接從 `SpriteFrames.get_frame_count()/get_animation_speed()` 換算，不能寫死秒數（否則動畫還沒播完就提早收招、搶跑下一次攻擊，會變成一次揮擊算兩次傷害）。`scenes/entities/enemies/slime_data.gd extends enemy_data.gd` 是對應資料型別，額外加了 `attack_animations`。之後要新增「近戰哥布林」之類，直接沿用 `slime.gd` + `slime_data.gd` 當骨架即可（屆時再考慮把檔名改中性）；遠程/法師型別則另外繼承 `enemy_base.gd`/`enemy_data.gd`，只需實作各自的 `_perform_attack()` 與資料子類別。
 - **資料驅動的顏色範例（史萊姆）**：`scenes/entities/enemies/slime.tscn` 是共用場景（`AnimatedSprite2D` 不內建 `sprite_frames`，由 `_ready()` 依 `data` 動態指派）。7 個顏色分別是 `resources/enemies/slime_data_<color>.tres`（數值）+ `resources/enemies/slime_frames_<color>.tres`（動畫幀，來源圖在 `assets/sprites/enemies/slime/`）。新增一個顏色/變種：複製一份 `slime_data_*.tres`、指到新的 `SpriteFrames` resource，在地圖場景 instance `slime.tscn`、把 `data` 欄位指過去即可，不用寫程式碼或複製場景。
 
+- **訓練假人（稻草人）**：`training_dummy.tscn` + `training_dummy.gd extends enemy_base.gd`，資料為 `resources/enemies/training_dummy_data.tres`（高血量、不掉落），動畫 `scarecrow_frames.tres`（idle/run 單幀、hurt 受擊搖晃）。覆寫掉漫遊/追擊/擊退/攻擊，被打只播 `hurt`。
+
 ### 掉落物系統
 
-- **`scenes/items/loot_data.gd`**：掉落物資料（`Resource`），欄位為 `item_id`（`"coin"` / `"meat"` 等）、`texture`、`amount`（coin 當金額，其他道具當數量）、`weight`（加權隨機用，只有相對比例有意義）。`resources/items/loot_*.tres` 是實際的掉落項目（`loot_coin_1~6.tres` 對應 6 種金額，`loot_meat.tres`）。
+- **`scenes/items/loot_data.gd`**：掉落物資料（`Resource`），欄位為 `item_id`（`"coin"` / `"meat"` 等）、`texture`、`amount`（coin 當金額，其他道具當數量）、`weight`（加權隨機用，只有相對比例有意義）。`resources/items/loot_*.tres` 是實際的掉落項目。金幣只有一份 `loot_coin.tres`：金額由 `enemy_data.gd` 的 `coin_min`/`coin_max` 隨機決定，`pickup.gd` 的 `COIN_TIERS` 依金額切換外觀（1~99 銅幣、100~999 銀幣、1000+ 金幣，動畫為 `*_spin_frames.tres`）；貨幣本身只有一種數值（`player.gold`）。
 - **`enemy_data.gd`** 新增 `loot_drop_chance`（死亡時掉東西的機率）與 `loot_table: Array[LootData]`，預設已 preload 上述全部 7 種，個別敵人要客製掉落表可直接在該敵人的 `.tres` 裡覆寫這個欄位。
 - **`enemy_base.gd`** 的 `die()` 會呼叫 `_drop_loot()`：機率過關後用 `weight` 加權隨機抽一項，`instantiate` `scenes/items/pickup.tscn` 並在死亡位置附近小範圍隨機偏移。
 - **`scenes/items/pickup.gd`**：掉在地上的 `Area2D`，`setup(loot)` 帶入貼圖/`item_id`/`amount`。拾取走 duck typing 契約：呼叫方（玩家）對它呼叫 `collect(collector)`，內部再呼叫 `collector.collect_item(item_id, amount)`；沒有實作 `collect_item` 的節點不會觸發效果。
-- **玩家端**：`player.gd` 的 `InteractArea`（`collision_mask = 16`）偵測範圍內的掉落物，按 `interact`（F 鍵）觸發 `_try_interact()`，對範圍內所有掉落物呼叫 `collect()`。`collect_item()` 裡 `item_id == "coin"` 直接加 `gold`（同步更新 HUD 的 `GoldLabel`），其餘道具先丟進 `inventory` 這個 Dictionary 計數，尚未接背包 UI（階段 3 待補）。
+- **玩家端**：`player.gd` 的 `InteractArea`（`collision_mask = 16`）自動拾取範圍內的掉落物——`area_entered` 訊號接到 `_on_interact_area_entered()`，一碰到就呼叫 `collect()`，不需按鍵。`collect_item()` 裡 `item_id == "coin"` 直接加 `gold`（同步更新 HUD 的 `GoldLabel`），其餘道具先丟進 `inventory` 這個 Dictionary 計數，尚未接背包 UI（階段 3 待補）。
 
 ### 動畫
 

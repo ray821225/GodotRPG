@@ -222,7 +222,6 @@ collision_layer = 2
 collision_mask = 0
 
 [node name="HurtBoxShape" type="CollisionShape2D" parent="HurtBox" unique_id=2051218838]
-visible = false
 position = Vector2(0, -34)
 shape = SubResource("CircleShape2D_hurtbox")
 
@@ -265,7 +264,8 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="Minimap" parent="HUD/HUDControl" instance=ExtResource("8_minimap")]
+[node name="Minimap" parent="HUD/HUDControl" unique_id=148070384 instance=ExtResource("8_minimap")]
+anchors_preset = 0
 
 [node name="GoldLabel" type="Label" parent="HUD/HUDControl" unique_id=1159006681]
 layout_mode = 0

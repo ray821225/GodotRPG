@@ -339,7 +339,9 @@ func _drop_loot() -> void:
 		return
 	var pickup = PICKUP.instantiate()
 	get_tree().current_scene.add_child(pickup)
-	pickup.setup(loot)
+	# 金幣金額依怪物資料隨機，其他道具沿用 LootData 的固定數量
+	var amount: int = randi_range(data.coin_min, data.coin_max) if loot.item_id == "coin" else loot.amount
+	pickup.setup(loot, amount)
 	var drop_offset: Vector2 = Vector2(randf_range(-12.0, 12.0), randf_range(-12.0, 12.0))
 	pickup.play_drop_animation(global_position, global_position + drop_offset)
 

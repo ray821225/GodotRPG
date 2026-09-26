@@ -13,6 +13,8 @@
 [ext_resource type="Resource" uid="uid://dt14lk1p6uhec" path="res://resources/enemies/slime_data_cyan.tres" id="20_l4ftj"]
 [ext_resource type="PackedScene" uid="uid://cl7heuc2whkuo" path="res://scenes/entities/portal/portal.tscn" id="50_portal"]
 [ext_resource type="Texture2D" uid="uid://cf2m1d520p3ey" path="res://assets/effects/Dimensional_Portal.png" id="51_portal_tex"]
+[ext_resource type="Resource" path="res://resources/enemies/training_dummy_data.tres" id="60_dummy"]
+[ext_resource type="PackedScene" path="res://scenes/entities/enemies/training_dummy.tscn" id="61_dummy_scene"]
 
 [node name="TestMap" type="Node2D" unique_id=1498851057]
 y_sort_enabled = true
@@ -58,7 +60,7 @@ tile_map_data = PackedByteArray("AAASAA0AAAAAAAAAAAAoAA0AAAAAAAAAAAA=")
 tile_set = ExtResource("6_ibx7c")
 
 [node name="Player" parent="." unique_id=2058687821 instance=ExtResource("13_yti6m")]
-position = Vector2(1662, 1792)
+position = Vector2(1594, 1728)
 
 [node name="PortalToMap2" parent="." unique_id=1259641623 instance=ExtResource("50_portal")]
 position = Vector2(339, 1829)
@@ -74,7 +76,7 @@ target_spawn_point = &"SpawnFromTestMap"
 position = Vector2(874, 709)
 
 [node name="SpawnAreaSlimeCyan" type="Node2D" parent="." unique_id=722092931]
-position = Vector2(576, 1099)
+position = Vector2(1917, 602)
 script = ExtResource("19_rxdrk")
 enemy_scene = ExtResource("14_slime")
 enemy_data = ExtResource("20_l4ftj")
@@ -82,10 +84,10 @@ min_count = 10
 max_count = 15
 shape_type = 1
 radius = 400.0
-rect_size = Vector2(500, 500)
+rect_size = Vector2(1000, 1000)
 
 [node name="SpawnAreaSlimeGreen" type="Node2D" parent="." unique_id=1250306450]
-position = Vector2(2318, 1655)
+position = Vector2(2673, 602)
 script = ExtResource("19_rxdrk")
 enemy_scene = ExtResource("14_slime")
 enemy_data = ExtResource("20_data_green")
@@ -93,4 +95,8 @@ min_count = 35
 max_count = 40
 shape_type = 1
 radius = 400.0
-rect_size = Vector2(1400, 700)
+rect_size = Vector2(1000, 1000)
+
+[node name="TrainingDummy" parent="." unique_id=1834902507 instance=ExtResource("61_dummy_scene")]
+position = Vector2(1815, 1756)
+data = ExtResource("60_dummy")
