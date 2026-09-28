@@ -59,13 +59,38 @@ func setup(loot: LootData, amount_override: int = -1) -> void:
 	else:
 		name_tag.text = "%s x%d" % [label_name, amount] if amount > 1 else label_name
 	if frames:
-		anim_sprite.sprite_frames = frames
-		anim_sprite.play(loot.sprite_frames.get_animation_names()[0])
-		anim_sprite.visible = true
-		sprite.visible = false
+		_play_frames(frames)
+	elif loot.texture and loot.hframes > 1:
+		# 橫向動畫條（例如藥水）：切成循環動畫，縮放完全由 display_scale 決定
+		_play_frames(_strip_frames(loot.texture, loot.hframes, loot.anim_fps))
+		anim_sprite.scale = Vector2.ONE * loot.display_scale
 	else:
 		sprite.texture = loot.texture
 		sprite.scale = Vector2.ONE * loot.display_scale
+
+func _play_frames(frames: SpriteFrames) -> void:
+	anim_sprite.sprite_frames = frames
+	anim_sprite.play(frames.get_animation_names()[0])
+	anim_sprite.visible = true
+	sprite.visible = false
+
+## 同一張動畫條的所有掉落物共用一份 SpriteFrames，不用每次掉落都重切
+static var _strip_cache: Dictionary = {}
+
+static func _strip_frames(sheet: Texture2D, count: int, fps: float) -> SpriteFrames:
+	if _strip_cache.has(sheet):
+		return _strip_cache[sheet]
+	var frames := SpriteFrames.new()
+	frames.set_animation_speed(&"default", fps)
+	frames.set_animation_loop(&"default", true)
+	var frame_w: float = sheet.get_width() / float(count)
+	for i in range(count):
+		var atlas := AtlasTexture.new()
+		atlas.atlas = sheet
+		atlas.region = Rect2(frame_w * i, 0, frame_w, sheet.get_height())
+		frames.add_frame(&"default", atlas)
+	_strip_cache[sheet] = frames
+	return frames
 
 ## 掉落動畫：從怪物身上的 start_pos 為起點，縮放從 0 變大、邊旋轉邊飛到地上的 end_pos，
 ## 飛行途中先關掉碰撞判定，避免玩家在半空中就撿到。

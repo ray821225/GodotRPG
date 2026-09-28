@@ -58,8 +58,16 @@ const LootData = preload("res://scenes/items/loot_data.gd")
 @export var loot_table: Array[LootData] = [
 	preload("res://resources/items/loot_coin.tres"),
 	preload("res://resources/items/loot_meat.tres"),
-	preload("res://resources/items/loot_potion_health.tres"),
-	preload("res://resources/items/loot_potion_mana.tres"),
+	# 藥水：4 種樣式（1 試管 / 2 漂流瓶 / 3 果醬罐 / 4 甕）× 生命/魔力，目前各樣式等機率隨機，
+	# 權重總和同舊版兩種藥水（各 8），之後再依樣式區分效果/掉落率
+	preload("res://resources/items/loot_potion_health_1.tres"),
+	preload("res://resources/items/loot_potion_health_2.tres"),
+	preload("res://resources/items/loot_potion_health_3.tres"),
+	preload("res://resources/items/loot_potion_health_4.tres"),
+	preload("res://resources/items/loot_potion_mana_1.tres"),
+	preload("res://resources/items/loot_potion_mana_2.tres"),
+	preload("res://resources/items/loot_potion_mana_3.tres"),
+	preload("res://resources/items/loot_potion_mana_4.tres"),
 ]
 ## 抽中金幣時的金額範圍（含頭尾），依怪物強度手動配置。
 ## 1~99 顯示銅幣、100~999 銀幣、1000 以上金幣；前期怪物保持在 99 以下即全為銅幣。

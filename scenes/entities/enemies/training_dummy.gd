@@ -20,6 +20,11 @@ func take_damage(amount: int, type: DamageNumber.DamageType = DamageNumber.Damag
 	sprite.stop()
 	sprite.play("hurt")
 
+## 被挑釁只跳驚嘆號，不追擊
+func taunt(_source: Node2D) -> void:
+	if state != State.DEAD:
+		_show_alert()
+
 ## 釘在地上，不被擊退
 func apply_knockback(_direction: Vector2, _strength: float) -> void:
 	pass

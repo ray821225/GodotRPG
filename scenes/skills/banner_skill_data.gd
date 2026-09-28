@@ -6,8 +6,8 @@ extends "res://scenes/skills/skill_data.gd"
 @export var scene: PackedScene
 ## 最遠施放距離（玩家碰撞寬約 46px，240 ≈ 5 個人）
 @export var cast_range: float = 240.0
-## 增益範圍半徑（64 = 直徑 128）
-@export var radius: float = 64.0
+## 增益範圍半徑（96 = 直徑 192）
+@export var radius: float = 96.0
 @export var radius_per_level: float = 0.0
 @export var duration: float = 10.0
 @export var duration_per_level: float = 0.0

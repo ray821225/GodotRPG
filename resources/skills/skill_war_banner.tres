@@ -7,7 +7,7 @@
 script = ExtResource("1_script")
 scene = ExtResource("2_scene")
 cast_range = 240.0
-radius = 64.0
+radius = 96.0
 radius_per_level = 4.0
 duration = 10.0
 duration_per_level = 0.5

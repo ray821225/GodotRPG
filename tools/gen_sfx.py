@@ -132,8 +132,33 @@ def banner_plant():
         out.append(s)
     return out
 
+def taunt():
+    # 挑釁：前段是粗啞的「嘰哩咕嚕」罵聲（鋸齒波＋低通、每個音節音高亂跳），
+    # 後段接一個上揚的雙音「叮叮！」提示敵人被激怒
+    dur = 0.62
+    out, phase, lp = [], 0.0, 0.0
+    syllables = [(0.00, 0.07, 150), (0.08, 0.06, 185), (0.15, 0.07, 135), (0.23, 0.10, 200)]
+    for i in range(int(SR * dur)):
+        t = i / SR
+        s = 0.0
+        for start, length, f in syllables:
+            ts = t - start
+            if 0 <= ts < length:
+                env = math.sin(math.pi * ts / length)
+                freq = f * (1 + 0.15 * math.sin(2 * math.pi * 30 * ts))
+                phase += freq / SR
+                saw = 2 * (phase % 1.0) - 1
+                lp += 0.18 * (saw - lp)
+                s += lp * env * 1.2
+        for start, f in [(0.36, 988), (0.45, 1319)]:
+            tb = t - start
+            if tb >= 0:
+                s += 0.45 * math.sin(2 * math.pi * f * tb) * math.exp(-18 * tb) * (1 if tb > 0.003 else tb / 0.003)
+        out.append(s)
+    return out
+
 out_dir = sys.argv[1]
-for name, fn in [("reflect_open", shield_open), ("reflect_absorb", absorb), ("reflect_release", release), ("reflect_hit", hit), ("enemy_hit", enemy_hit), ("banner_plant", banner_plant)]:
+for name, fn in [("reflect_open", shield_open), ("reflect_absorb", absorb), ("reflect_release", release), ("reflect_hit", hit), ("enemy_hit", enemy_hit), ("banner_plant", banner_plant), ("taunt", taunt)]:
     path = os.path.join(out_dir, name + ".wav")
     write(path, fn())
     print("wrote", path)

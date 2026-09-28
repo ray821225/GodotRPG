@@ -1,31 +1,26 @@
 extends Area2D
 
-## 戰旗（暫時版，全程式繪製，之後有素材再換）：
-## - 插旗：從上方落下插進地面，揚起塵土、地面光圈展開
-## - 飄動：旗面切成多條直欄，每欄依正弦波上下位移，離旗桿越遠擺幅越大，
-##   並依波形斜率調亮/調暗做出布料起伏的明暗
-## - 範圍：地面光圈，有友軍在範圍內時變亮
+## 戰旗：flag_plant.png（橫向 10 格、每格 256x368）
+## - plant（0~5）：旗子落下插地、光圈爆開，第 1 格插地瞬間才開始套增益並播音效
+## - wave（6~9）：持續飄動循環
+## - 範圍：程式繪製的地面光圈（素材的光圈只在插地時短暫出現），有友軍在範圍內時變亮
 ## - 最後 2 秒閃爍，時間到淡出並移除所有增益
 ## 增益契約（duck typing，同 take_damage）：範圍內有 add_stat_modifier() 的節點會被套用，
 ## 離開時呼叫 remove_stat_modifier(self)。
 
-const DUST_EFFECT = preload("res://scenes/effects/dust_effect.tscn")
+const SHEET = preload("res://assets/effects/skills/knight/flag_plant.png")
 const Sfx = preload("res://scenes/support/sfx.gd")
 const SFX_PLANT = preload("res://assets/audio/sfx/banner_plant.wav")
 
-const POLE_HEIGHT: float = 110.0
-const POLE_WIDTH: float = 4.0
-const FLAG_SIZE: Vector2 = Vector2(56.0, 36.0)
-const FLAG_COLUMNS: int = 16
-const WAVE_SPEED: float = 7.0
-const WAVE_LENGTH: float = 0.25 # 每欄相位差
-const WAVE_AMPLITUDE: float = 6.0
-const FLAG_COLOR: Color = Color(0.78, 0.16, 0.14)
-const TRIM_COLOR: Color = Color(0.95, 0.78, 0.3)
-const POLE_COLOR: Color = Color(0.4, 0.27, 0.15)
+const FRAME_SIZE: Vector2i = Vector2i(256, 368)
+const SPRITE_SCALE: float = 0.6
+## 旗桿底部在每格內約 (127, 287)，offset 讓旗桿底部對齊節點原點（插地點）
+const SPRITE_OFFSET: Vector2 = Vector2(1, -103)
+const PLANT_FPS: float = 12.0
+const WAVE_FPS: float = 8.0
+## plant 動畫中旗桿插進地面的那一格
+const IMPACT_FRAME: int = 1
 const RING_COLOR: Color = Color(0.95, 0.78, 0.3)
-const DROP_HEIGHT: float = 90.0
-const DROP_DURATION: float = 0.15
 const WARN_TIME: float = 2.0
 const FADE_DURATION: float = 0.4
 
@@ -34,7 +29,8 @@ var duration: float = 10.0
 var defense_bonus: float = 0.3
 
 var _t: float = 0.0
-var _drop_offset: float = 0.0
+var _planted: bool = false
+var _sprite: AnimatedSprite2D
 var _ring_scale: float = 0.0
 var _ending: bool = false
 var _affected: Array[Node] = []
@@ -52,26 +48,54 @@ func _ready() -> void:
 	body_exited.connect(_on_body_exited)
 	ring.draw.connect(_draw_ring)
 
-	_drop_offset = -DROP_HEIGHT
-	var tween := create_tween()
-	tween.tween_property(self, "_drop_offset", 0.0, DROP_DURATION).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
-	tween.tween_callback(_on_planted)
-	tween.tween_property(self, "_ring_scale", 1.0, 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	_sprite = AnimatedSprite2D.new()
+	_sprite.sprite_frames = _build_frames()
+	_sprite.scale = Vector2.ONE * SPRITE_SCALE
+	_sprite.offset = SPRITE_OFFSET
+	add_child(_sprite)
+	_sprite.frame_changed.connect(_on_frame_changed)
+	_sprite.animation_finished.connect(_on_animation_finished)
+	_sprite.play(&"plant")
 
 	get_tree().create_timer(duration).timeout.connect(_expire)
 
+func _build_frames() -> SpriteFrames:
+	var frames := SpriteFrames.new()
+	frames.remove_animation(&"default")
+	_add_anim(frames, &"plant", range(0, 6), PLANT_FPS, false)
+	_add_anim(frames, &"wave", range(6, 10), WAVE_FPS, true)
+	return frames
+
+func _add_anim(frames: SpriteFrames, anim: StringName, indices: Array, fps: float, loop: bool) -> void:
+	frames.add_animation(anim)
+	frames.set_animation_speed(anim, fps)
+	frames.set_animation_loop(anim, loop)
+	for i in indices:
+		var atlas := AtlasTexture.new()
+		atlas.atlas = SHEET
+		atlas.region = Rect2(i * FRAME_SIZE.x, 0, FRAME_SIZE.x, FRAME_SIZE.y)
+		frames.add_frame(anim, atlas)
+
+func _on_frame_changed() -> void:
+	if not _planted and _sprite.animation == &"plant" and _sprite.frame >= IMPACT_FRAME:
+		_on_planted()
+
+func _on_animation_finished() -> void:
+	if _sprite.animation == &"plant":
+		_sprite.play(&"wave")
+
+## 旗桿插進地面：開始套增益、播音效、展開範圍光圈
 func _on_planted() -> void:
+	_planted = true
 	monitoring = true
 	Sfx.play(self, SFX_PLANT, -3.0)
-	var dust = DUST_EFFECT.instantiate()
-	get_tree().current_scene.add_child(dust)
-	dust.global_position = global_position
+	var tween := create_tween()
+	tween.tween_property(self, "_ring_scale", 1.0, 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 
 func _process(delta: float) -> void:
 	_t += delta
 	if not _ending and _t > duration - WARN_TIME:
 		modulate.a = 0.4 if fmod(_t, 0.24) < 0.12 else 1.0
-	queue_redraw()
 	ring.queue_redraw()
 
 func _on_body_entered(body: Node) -> void:
@@ -105,58 +129,6 @@ func _clear_modifiers() -> void:
 		if is_instance_valid(body):
 			body.remove_stat_modifier(self)
 	_affected.clear()
-
-func _draw() -> void:
-	var base := Vector2(0, _drop_offset)
-	var top := base + Vector2(0, -POLE_HEIGHT)
-	# 旗桿＋頂端金球
-	draw_rect(Rect2(top.x - POLE_WIDTH * 0.5, top.y, POLE_WIDTH, POLE_HEIGHT), POLE_COLOR)
-	draw_circle(top + Vector2(0, -3), 5.0, TRIM_COLOR)
-
-	# 旗面：逐欄畫四邊形，y 位移 = sin 波 × 離旗桿距離比例（根部固定、尾端擺最大）
-	var flag_top: Vector2 = top + Vector2(POLE_WIDTH * 0.5, 3.0)
-	var col_w: float = FLAG_SIZE.x / FLAG_COLUMNS
-	for i in range(FLAG_COLUMNS):
-		var x0: float = i * col_w
-		var x1: float = x0 + col_w
-		var y0: float = _wave(i)
-		var y1: float = _wave(i + 1)
-		# 下緣做成燕尾：最後幾欄往中間收
-		var cut0: float = _swallowtail(i)
-		var cut1: float = _swallowtail(i + 1)
-		var shade: float = clampf((y1 - y0) * 0.35, -0.3, 0.3)
-		var color: Color = FLAG_COLOR.lightened(shade) if shade > 0.0 else FLAG_COLOR.darkened(-shade)
-		var quad := PackedVector2Array([
-			flag_top + Vector2(x0, y0),
-			flag_top + Vector2(x1, y1),
-			flag_top + Vector2(x1, y1 + FLAG_SIZE.y - cut1),
-			flag_top + Vector2(x0, y0 + FLAG_SIZE.y - cut0),
-		])
-		draw_colored_polygon(quad, color)
-		# 上下金邊
-		draw_line(flag_top + Vector2(x0, y0), flag_top + Vector2(x1, y1), TRIM_COLOR, 2.0)
-		draw_line(flag_top + Vector2(x0, y0 + FLAG_SIZE.y - cut0), flag_top + Vector2(x1, y1 + FLAG_SIZE.y - cut1), TRIM_COLOR, 1.5)
-
-	# 旗面中央的盾形紋章，跟著所在那欄的波一起動
-	var mid: int = int(FLAG_COLUMNS * 0.5) - 1
-	var emblem_center: Vector2 = flag_top + Vector2(mid * col_w, _wave(mid) + FLAG_SIZE.y * 0.45)
-	draw_colored_polygon(PackedVector2Array([
-		emblem_center + Vector2(-7, -8),
-		emblem_center + Vector2(7, -8),
-		emblem_center + Vector2(7, 2),
-		emblem_center + Vector2(0, 10),
-		emblem_center + Vector2(-7, 2),
-	]), TRIM_COLOR)
-
-func _wave(column: int) -> float:
-	var ratio: float = float(column) / FLAG_COLUMNS
-	return sin(_t * WAVE_SPEED - column * WAVE_LENGTH) * WAVE_AMPLITUDE * ratio
-
-func _swallowtail(column: int) -> float:
-	var start: int = FLAG_COLUMNS - 3
-	if column <= start:
-		return 0.0
-	return FLAG_SIZE.y * 0.5 * float(column - start) / 3.0 * 0.6
 
 ## 地面光圈（畫在 Ring 子節點上，z_index -1 壓在角色下面）；有友軍在範圍內時變亮
 func _draw_ring() -> void:

@@ -285,6 +285,40 @@ func take_damage(amount: int, type: DamageNumber.DamageType = DamageNumber.Damag
 	if hp <= 0:
 		die()
 
+## 被挑釁（taunt_skill_data.gd 呼叫）：頭上跳驚嘆號，不管有沒有主動索敵都立刻鎖定來源追擊，
+## 同 take_damage() 收到 attacker 時的反向鎖定。
+func taunt(source: Node2D) -> void:
+	if state == State.DEAD:
+		return
+	_show_alert()
+	player = source
+	if state != State.ATTACK:
+		state = State.CHASE
+
+## 頭頂驚嘆號：彈出放大 → 停留 → 往上淡出，位置放在各敵人自己的血條上方
+func _show_alert() -> void:
+	var mark := Label.new()
+	mark.text = "!"
+	mark.z_index = 100
+	mark.add_theme_font_size_override("font_size", 26)
+	mark.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
+	mark.add_theme_color_override("font_outline_color", Color(0.45, 0.05, 0.0))
+	mark.add_theme_constant_override("outline_size", 6)
+	mark.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	mark.size = Vector2(30, 34)
+	mark.pivot_offset = Vector2(15, 34)
+	# 血條沒受傷時是隱藏的，驚嘆號貼著血條位置放，不要飄太高
+	mark.position = Vector2(-15, health_bar.position.y - 22)
+	mark.scale = Vector2.ZERO
+	add_child(mark)
+	var tween := mark.create_tween()
+	tween.tween_property(mark, "scale", Vector2.ONE * 1.3, 0.1).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(mark, "scale", Vector2.ONE, 0.08)
+	tween.tween_interval(0.6)
+	tween.tween_property(mark, "position:y", mark.position.y - 10, 0.25)
+	tween.parallel().tween_property(mark, "modulate:a", 0.0, 0.25)
+	tween.tween_callback(mark.queue_free)
+
 ## 往 direction 方向輕輕滑一小段距離，打中/被打中時用來做「有被擊中」的手感回饋。
 func apply_knockback(direction: Vector2, strength: float) -> void:
 	if direction.length() < 0.01:

@@ -60,10 +60,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### 技能系統：SkillData（新增技能請沿用）
 
+**原生能力 vs 技能**：角色原生就有的只有「普攻」（左鍵點擊）與「格擋／格擋反擊」（空白鍵），寫在 `player.gd` 裡不走 SkillData。其餘都算技能（有職業限制、之後進技能樹），包含**蓄力斬**：數值/職業/冷卻/MP 在 `skill_charge_slash.tres`（`charge_slash_skill_data.gd`），但不佔技能欄，由左鍵長按觸發（`player.gd` 的 `charge_slash_skill`）。長按達門檻時 `can_use_skill()` 不通過就當普攻；蓄滿放開走 `use_skill()` → `cast()` → `player.perform_charge_slash(倍率)`。蓄力特效/揮砍動畫/HitBox 跟普攻共用，所以執行留在 `player.gd`。
+- **施放入口**：技能欄與蓄力斬都走 `use_skill(skill)`（檢查 + cast + 扣 MP + 進冷卻），只檢查不扣用 `can_use_skill(skill)`。
+
+騎士目前技能欄（`player.gd` 的 `skill_slots`）：Q 戰旗、E 劍擊（`skill_sword_nova_2`）、R 挑釁、F 反彈護盾，T/G 空。
+
 跟敵人一樣拆成「資料」與「效果」：
 
 - **`scenes/skills/skill_data.gd`**（`Resource`）：共用欄位 `id`（冷卻/等級/存檔的 key，建立後不要改）、`display_name`、`icon`、`roles`（可用職業，空 = 全職業）、`max_level`、`cooldown`、`mp_cost`。`*_per_level` 欄位是每升一級的增量，用 `scaled(base, per_level, level)` 換算。子類別覆寫 `can_cast(caster)`（額外條件）與 `cast(caster, level)`（實際效果）。
-- **子類別**：`sword_nova_skill_data.gd`（落地 AOE，換 `scene` 即換素材）、`projectile_skill_data.gd`（直線投射物：火球/冰錐）、`reflect_skill_data.gd`（反彈護盾，邏輯在 `reflect_shield.gd`，玩家 `take_damage()` 在 `reflect_shield` 有值時改呼叫 `absorb()`）、`banner_skill_data.gd`（放置型增益：`war_banner.tscn` 插在滑鼠位置，限 `cast_range` 內）。
+- **子類別**：`sword_nova_skill_data.gd`（落地 AOE，換 `scene` 即換素材）、`projectile_skill_data.gd`（直線投射物：火球/冰錐）、`reflect_skill_data.gd`（反彈護盾，邏輯在 `reflect_shield.gd`，玩家 `take_damage()` 在 `reflect_shield` 有值時改呼叫 `absorb()`）、`banner_skill_data.gd`（放置型增益：`war_banner.tscn` 插在滑鼠位置，限 `cast_range` 內）、`taunt_skill_data.gd`（挑釁：頭上對話框 `taunt_bubble.gd`，半徑內敵人呼叫 `taunt(source)`）。
+- **挑釁契約**：`enemy_base.gd` 的 `taunt(source)` 頭頂跳驚嘆號並鎖定 source 追擊（無視 `use_detection`）；`training_dummy.gd` 覆寫成只跳驚嘆號。
 - **增益契約**（duck typing）：`add_stat_modifier(source, stat, percent)` / `remove_stat_modifier(source)`，以來源節點為 key、同來源不疊加，由來源負責移除（戰旗在離開範圍/到期/`_exit_tree` 時移除）。玩家受傷一律用 `get_defense()`（基礎 `def` × (1 + 加成)），不要直接讀 `def`。
 - **音效**：`tools/gen_sfx.py` 以純 Python 合成（固定亂數種子），`python tools/gen_sfx.py assets/audio/sfx` 重新產生；一次性音效用 `scenes/support/sfx.gd` 的 `Sfx.play()`（掛在 current_scene、播完自動釋放）。
 - **資料**：`resources/skills/skill_*.tres`。法師的 `skill_fireball`/`skill_icespike` 已建好但沒放進騎士技能欄。
@@ -72,7 +78,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### 掉落物系統
 
-- **`scenes/items/loot_data.gd`**：掉落物資料（`Resource`），欄位為 `item_id`（`"coin"` / `"meat"` 等）、`texture`、`amount`（coin 當金額，其他道具當數量）、`weight`（加權隨機用，只有相對比例有意義）。`resources/items/loot_*.tres` 是實際的掉落項目。金幣只有一份 `loot_coin.tres`：金額由 `enemy_data.gd` 的 `coin_min`/`coin_max` 隨機決定，`pickup.gd` 的 `COIN_TIERS` 依金額切換外觀（1~99 銅幣、100~999 銀幣、1000+ 金幣，動畫為 `*_spin_frames.tres`）；貨幣本身只有一種數值（`player.gold`）。
+- **`scenes/items/loot_data.gd`**：掉落物資料（`Resource`），欄位為 `item_id`（`"coin"` / `"meat"` 等）、`texture`、`amount`（coin 當金額，其他道具當數量）、`weight`（加權隨機用，只有相對比例有意義）。`resources/items/loot_*.tres` 是實際的掉落項目。`texture` 是橫向動畫條時設 `hframes`（>1 由 `pickup.gd` 自動切成循環動畫，縮放只看 `display_scale`），例如藥水 `loot_potion_<health|mana>_<1~4>.tres`（素材 `assets/sprites/items/`，7 格 64x64，1 試管/2 漂流瓶/3 果醬罐/4 甕，目前各樣式等權重隨機、item_id 各自獨立，效果尚未區分）。金幣只有一份 `loot_coin.tres`：金額由 `enemy_data.gd` 的 `coin_min`/`coin_max` 隨機決定，`pickup.gd` 的 `COIN_TIERS` 依金額切換外觀（1~99 銅幣、100~999 銀幣、1000+ 金幣，動畫為 `*_spin_frames.tres`）；貨幣本身只有一種數值（`player.gold`）。
 - **`enemy_data.gd`** 新增 `loot_drop_chance`（死亡時掉東西的機率）與 `loot_table: Array[LootData]`，預設已 preload 上述全部 7 種，個別敵人要客製掉落表可直接在該敵人的 `.tres` 裡覆寫這個欄位。
 - **`enemy_base.gd`** 的 `die()` 會呼叫 `_drop_loot()`：機率過關後用 `weight` 加權隨機抽一項，`instantiate` `scenes/items/pickup.tscn` 並在死亡位置附近小範圍隨機偏移。
 - **`scenes/items/pickup.gd`**：掉在地上的 `Area2D`，`setup(loot)` 帶入貼圖/`item_id`/`amount`。拾取走 duck typing 契約：呼叫方（玩家）對它呼叫 `collect(collector)`，內部再呼叫 `collector.collect_item(item_id, amount)`；沒有實作 `collect_item` 的節點不會觸發效果。

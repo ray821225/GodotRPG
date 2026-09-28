@@ -14,6 +14,7 @@ const LEVELUP_EFFECT = preload("res://scenes/effects/levelup_effect.tscn")
 const BLOCK_EFFECT = preload("res://scenes/effects/block_effect.tscn")
 const COUNTER_EFFECT = preload("res://scenes/effects/counter_effect.tscn")
 const SkillData = preload("res://scenes/skills/skill_data.gd")
+const ChargeSlashSkillData = preload("res://scenes/skills/charge_slash_skill_data.gd")
 const REFLECT_SHIELD = preload("res://scenes/skills/reflect_shield.gd")
 ## 技能欄位數，對應 InputMap 的 skill_slot_1 ~ skill_slot_N（預設 Q E R T F G）
 const SKILL_SLOT_COUNT: int = 6
@@ -64,19 +65,21 @@ const EXP_CURVE_EXPONENT: float = 2.2
 @export_category("Skills")
 ## 技能欄：第 N 格對應 skill_slot_N 按鍵，放 resources/skills/ 的 SkillData，空格放 null。
 ## 法師技能（skill_fireball / skill_icespike.tres）目前沒放進來，騎士用不到。
+## 舊版劍擊素材 skill_sword_nova.tres 未使用，劍擊用的是新素材版 skill_sword_nova_2.tres。
 @export var skill_slots: Array[SkillData] = [
-	null,
-	null,
-	preload("res://resources/skills/skill_sword_nova.tres"),
-	preload("res://resources/skills/skill_sword_nova_2.tres"),
-	preload("res://resources/skills/skill_reflect.tres"),
-	preload("res://resources/skills/skill_war_banner.tres"),
+	preload("res://resources/skills/skill_war_banner.tres"), # Q
+	preload("res://resources/skills/skill_sword_nova_2.tres"), # E
+	preload("res://resources/skills/skill_taunt.tres"), # R
+	null, # T
+	preload("res://resources/skills/skill_reflect.tres"), # F
+	null, # G
 ]
+## 測試用：開啟時施放技能不扣 MP、不進冷卻（技能 .tres 的正式數值不變），正式版記得關掉
+@export var debug_free_skills: bool = true
 ## 每秒自然回復的 MP
 @export var mp_regen_per_sec: float = 2.0
-@export var charge_slash_damage_multiplier: float = 50
-@export var charge_slash_charge_time: float = 0.5
-@export var charge_slash_move_speed_multiplier: float = 0.4
+## 蓄力斬（左鍵長按觸發，不佔技能欄）；null 或職業不符時長按就只是普攻
+@export var charge_slash_skill: ChargeSlashSkillData = preload("res://resources/skills/skill_charge_slash.tres")
 
 var state: State = State.IDLE
 var move_direction: Vector2 = Vector2(0, 0)
@@ -105,6 +108,8 @@ var _stat_modifiers: Dictionary = {}
 var is_charging_slash: bool = false
 var _charge_slash_ready: bool = false
 var _charge_scale_tween: Tween
+## 本次蓄力的移動速度倍率（開始蓄力時從技能資料讀）
+var _charge_move_multiplier: float = 1.0
 var _left_click_claimed_by_charge: bool = false
 var gold: int = 0
 ## 除了金幣以外的道具（例如肉）先單純計數，背包系統之後再串。
@@ -155,11 +160,12 @@ func _ready() -> void:
 	interact_area.area_entered.connect(_on_interact_area_entered)
 
 ## 把 charg_big 這張橫向排列的蓄力精靈圖切成 CHARGE_SLASH_FRAME_COUNT 格，組成 AnimatedSprite2D
-## 可播放的 charge 動畫（時長對齊 charge_slash_charge_time，設為 loop 讓蓄滿等待放開期間不會停在最後一偵）。
+## 可播放的 charge 動畫（設為 loop 讓蓄滿等待放開期間不會停在最後一偵）。播放速度在 start_charge_slash()
+## 依當下技能等級的蓄力時間重設，這裡的 0.5 秒只是初始值。
 ## 「變大」的效果改由 charge_effect 的 scale 從 CHARGE_SLASH_SCALE_START 漸變回 1.0 來表現。
 func _build_charge_sprite_frames() -> SpriteFrames:
 	var frames := SpriteFrames.new()
-	_add_charge_animation(frames, &"charge", CHARGE_SLASH_TEXTURE_BIG, charge_slash_charge_time, true)
+	_add_charge_animation(frames, &"charge", CHARGE_SLASH_TEXTURE_BIG, 0.5, true)
 	return frames
 
 func _add_charge_animation(frames: SpriteFrames, anim_name: StringName, sheet: Texture2D, duration: float, loop: bool = false) -> void:
@@ -261,25 +267,37 @@ func _cancel_block() -> void:
 	is_parry_active = false
 	_set_block_visual(false)
 
-## 技能欄施放：職業/冷卻/MP/技能自訂條件都通過才施放，施放後扣 MP、進冷卻。
-## 實際效果由各 SkillData 子類別的 cast() 處理（見 scenes/skills/*_skill_data.gd）。
 func cast_skill_slot(index: int) -> void:
-	if index < 0 or index >= skill_slots.size() or state == State.DEAD:
+	if index < 0 or index >= skill_slots.size():
 		return
-	var skill: SkillData = skill_slots[index]
-	if skill == null or not skill.is_usable_by(role):
-		return
-	var now: float = Time.get_ticks_msec() / 1000.0
-	if now < _skill_ready_at.get(skill.id, 0.0):
-		return
-	var skill_level: int = get_skill_level(skill)
-	var cost: int = skill.get_mp_cost(skill_level)
-	if mp < cost or not skill.can_cast(self):
-		return
-	skill.cast(self, skill_level)
+	use_skill(skill_slots[index])
+
+## 職業/冷卻/MP/技能自訂條件是否都通過（不扣任何東西）
+func can_use_skill(skill: SkillData) -> bool:
+	if skill == null or state == State.DEAD or not skill.is_usable_by(role):
+		return false
+	if get_skill_cooldown_left(skill) > 0.0:
+		return false
+	if mp < _skill_mp_cost(skill):
+		return false
+	return skill.can_cast(self)
+
+## 所有技能施放的共用入口（技能欄、蓄力斬放開左鍵）：檢查通過才 cast()，之後扣 MP、進冷卻。
+## 實際效果由各 SkillData 子類別的 cast() 處理（見 scenes/skills/*_skill_data.gd）。
+func use_skill(skill: SkillData) -> bool:
+	if not can_use_skill(skill):
+		return false
+	var cost: int = _skill_mp_cost(skill)
+	skill.cast(self, get_skill_level(skill))
+	if debug_free_skills:
+		return true
 	mp -= cost
 	_update_mp_display()
-	_skill_ready_at[skill.id] = now + skill.cooldown
+	_skill_ready_at[skill.id] = Time.get_ticks_msec() / 1000.0 + skill.cooldown
+	return true
+
+func _skill_mp_cost(skill: SkillData) -> int:
+	return 0 if debug_free_skills else skill.get_mp_cost(get_skill_level(skill))
 
 func get_skill_level(skill: SkillData) -> int:
 	return clampi(skill_levels.get(skill.id, 1), 1, skill.max_level)
@@ -307,7 +325,7 @@ func _update_mp_display() -> void:
 func movement_loop() -> void:
 	move_direction.x = int(Input.is_action_pressed("right")) - int(Input.is_action_pressed("left"))
 	move_direction.y = int(Input.is_action_pressed("down")) - int(Input.is_action_pressed("up"))
-	var speed_multiplier: float = charge_slash_move_speed_multiplier if is_charging_slash else 1.0
+	var speed_multiplier: float = _charge_move_multiplier if is_charging_slash else 1.0
 	var motion: Vector2 = move_direction.normalized() * speed * speed_multiplier
 	set_velocity(motion)
 	move_and_slide()
@@ -348,14 +366,17 @@ func _on_left_click_pressed() -> void:
 		return
 	if not attack_ready or state == State.ATTACK or state == State.DEAD:
 		return
+	# 蓄力斬是技能：職業不符/冷卻中/MP 不夠就不蓄力，放開時照常普攻
+	if not can_use_skill(charge_slash_skill):
+		return
 	_left_click_claimed_by_charge = true
 	start_charge_slash()
 
 func _on_left_click_released() -> void:
 	if is_charging_slash:
-		if _charge_slash_ready:
-			_fire_charge_slash()
-		else:
+		# 蓄滿才走技能入口（cast → perform_charge_slash，並扣 MP、進冷卻）；
+		# 沒蓄滿，或蓄力途中條件變了（例如 MP 被其他技能用掉）就取消
+		if not (_charge_slash_ready and use_skill(charge_slash_skill)):
 			_cancel_charge_slash()
 		return
 	if not _left_click_claimed_by_charge:
@@ -392,29 +413,33 @@ func attack() -> void:
 	await get_tree().create_timer(maxf(attack_speed - ATTACK_LOCK_DURATION, 0.0)).timeout
 	attack_ready = true
 
-## 蓄力斬：按住左鍵超過 CLICK_HOLD_THRESHOLD 開始蓄力，charge_effect 播放 charge 動畫（大圖，loop，
-## 一輪時長對齊 charge_slash_charge_time），移動速度依 charge_slash_move_speed_multiplier 變慢；同時 scale 從
-## CHARGE_SLASH_SCALE_START（縮小版）漸變回 1.0（正常大小），快蓄滿時視覺上會明顯變大。
-## 蓄滿後不會自動出招，而是進入「蓄力完成」狀態等待放開左鍵，放開的當下才朝放開瞬間的滑鼠方向揮出，
-## 傷害為 attack_damage 的 charge_slash_damage_multiplier 倍。蓄力未滿就放開左鍵則直接取消，不會出招。
+## 蓄力斬（數值在 charge_slash_skill，見 charge_slash_skill_data.gd）：按住左鍵超過 CLICK_HOLD_THRESHOLD
+## 開始蓄力，charge_effect 播放 charge 動畫（大圖，loop，一輪時長對齊蓄力時間），移動速度依技能的
+## move_speed_multiplier 變慢；同時 scale 從 CHARGE_SLASH_SCALE_START（縮小版）漸變回 1.0，快蓄滿時明顯變大。
+## 蓄滿後不會自動出招，而是等待放開左鍵，放開當下走 use_skill() → perform_charge_slash() 朝滑鼠方向揮出。
+## 蓄力未滿就放開左鍵則直接取消，不會出招。
 func start_charge_slash() -> void:
 	if not attack_ready or state == State.ATTACK or state == State.DEAD or is_charging_slash:
 		return
 	if state == State.BLOCK:
 		_cancel_block()
+	var charge_time: float = charge_slash_skill.get_charge_time(get_skill_level(charge_slash_skill))
+	_charge_move_multiplier = charge_slash_skill.move_speed_multiplier
 	is_charging_slash = true
 	_charge_slash_ready = false
 	charge_effect.modulate.a = 1.0
 	charge_effect.visible = true
 	charge_effect.scale = Vector2.ONE * CHARGE_SLASH_SCALE_START
+	# 動畫一輪對齊蓄力時間（技能升級可能縮短），每次開始蓄力重新設定播放速度
+	charge_effect.sprite_frames.set_animation_speed(&"charge", CHARGE_SLASH_FRAME_COUNT / charge_time)
 	charge_effect.play(&"charge")
 
 	if _charge_scale_tween:
 		_charge_scale_tween.kill()
 	_charge_scale_tween = create_tween()
-	_charge_scale_tween.tween_property(charge_effect, "scale", Vector2.ONE, charge_slash_charge_time).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
+	_charge_scale_tween.tween_property(charge_effect, "scale", Vector2.ONE, charge_time).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
 
-	await get_tree().create_timer(charge_slash_charge_time).timeout
+	await get_tree().create_timer(charge_time).timeout
 	if not is_charging_slash:
 		return
 	_charge_slash_ready = true
@@ -429,7 +454,8 @@ func _cancel_charge_slash() -> void:
 	charge_effect.stop()
 	charge_effect.visible = false
 
-func _fire_charge_slash() -> void:
+## 由 charge_slash_skill_data.gd 的 cast() 呼叫，damage_multiplier 已依技能等級換算
+func perform_charge_slash(damage_multiplier: float) -> void:
 	is_charging_slash = false
 	_charge_slash_ready = false
 	if _charge_scale_tween:
@@ -455,7 +481,7 @@ func _fire_charge_slash() -> void:
 	fade_tween.tween_callback(func() -> void: charge_effect.visible = false)
 
 	await get_tree().create_timer(ATTACK_HIT_DELAY).timeout
-	deal_damage(false, charge_slash_damage_multiplier)
+	deal_damage(false, damage_multiplier)
 
 	await get_tree().create_timer(ATTACK_LOCK_DURATION - ATTACK_HIT_DELAY).timeout
 	hit_box.monitoring = false
