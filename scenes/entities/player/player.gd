@@ -16,11 +16,18 @@ const COUNTER_EFFECT = preload("res://scenes/effects/counter_effect.tscn")
 const SkillData = preload("res://scenes/skills/skill_data.gd")
 const ChargeSlashSkillData = preload("res://scenes/skills/charge_slash_skill_data.gd")
 const REFLECT_SHIELD = preload("res://scenes/skills/reflect_shield.gd")
+const Sfx = preload("res://scenes/support/sfx.gd")
+## 以下音效由 tools/gen_sfx.py 合成，要換素材直接覆蓋同名 wav
+const SFX_BLOCK = preload("res://assets/audio/sfx/block_clang.wav")
+const SFX_HURT = preload("res://assets/audio/sfx/player_hurt.wav")
+const SFX_COUNTER = preload("res://assets/audio/sfx/counter_hit.wav")
 ## 技能欄位數，對應 InputMap 的 skill_slot_1 ~ skill_slot_N（預設 Q E R T F G）
 const SKILL_SLOT_COUNT: int = 6
 const RoleData = preload("res://scenes/entities/player/role_data.gd")
 const DamageMath = preload("res://scenes/entities/damage_math.gd")
 const ATTACK_ANIM_LENGTH: float = 0.6
+## guard 動畫原始長度（6 格 × 0.1 秒），格擋時依 block_window 加速，讓舉盾剛好在格擋判定時間內播完
+const GUARD_ANIM_LENGTH: float = 0.6
 const ATTACK_LOCK_DURATION: float = 0.3
 const ATTACK_HIT_DELAY: float = 0.12
 const KNOCKBACK_ON_HIT: float = 10.0
@@ -70,7 +77,7 @@ const EXP_CURVE_EXPONENT: float = 2.2
 	preload("res://resources/skills/skill_war_banner.tres"), # Q
 	preload("res://resources/skills/skill_sword_nova_2.tres"), # E
 	preload("res://resources/skills/skill_taunt.tres"), # R
-	null, # T
+	preload("res://resources/skills/skill_shield_bash.tres"), # T
 	preload("res://resources/skills/skill_reflect.tres"), # F
 	null, # G
 ]
@@ -241,14 +248,13 @@ func try_block() -> void:
 	state = State.BLOCK
 	set_velocity(Vector2.ZERO)
 	move_and_slide()
-	_set_block_visual(true)
+	animation_tree.set("parameters/guard/TimeScale/scale", GUARD_ANIM_LENGTH / block_window)
 	update_animation()
 
 	await get_tree().create_timer(block_window).timeout
 	is_parry_active = false
 	if state == State.BLOCK:
 		state = State.IDLE
-		_set_block_visual(false)
 		update_animation()
 
 	if block_success:
@@ -258,14 +264,10 @@ func try_block() -> void:
 	await get_tree().create_timer(maxf(block_cooldown - block_window, 0.0)).timeout
 	block_ready = true
 
-func _set_block_visual(active: bool) -> void:
-	$Sprite2D.modulate = Color(0.7, 0.85, 1.0) if active else Color(1, 1, 1)
-
-## 格擋中被攻擊輸入打斷時呼叫：清掉格擋視覺與 parry 判定，讓 attack() 能正常出招。
+## 格擋中被攻擊輸入打斷時呼叫：清掉 parry 判定，讓 attack() 能正常出招（動畫由 attack() 切走）。
 ## try_block() 自己的計時器之後還是會照原本節奏跑完 block_cooldown，不會因此提早重置。
 func _cancel_block() -> void:
 	is_parry_active = false
-	_set_block_visual(false)
 
 func cast_skill_slot(index: int) -> void:
 	if index < 0 or index >= skill_slots.size():
@@ -352,7 +354,7 @@ func update_animation() -> void:
 		State.ATTACK:
 			animation_playback.travel("attack")
 		State.BLOCK:
-			animation_playback.travel("idle")
+			animation_playback.travel("guard")
 
 ## 左鍵點一下算普攻、按住算蓄力斬：按下先不出手，等 CLICK_HOLD_THRESHOLD 這麼久，
 ## 這段時間內放開就是單純點擊 → attack()；還按著就判定為長按 → 進入蓄力（由 _left_click_claimed_by_charge 標記，
@@ -412,6 +414,22 @@ func attack() -> void:
 
 	await get_tree().create_timer(maxf(attack_speed - ATTACK_LOCK_DURATION, 0.0)).timeout
 	attack_ready = true
+
+## 技能共用的揮擊動作：朝 dir 播攻擊動畫並鎖住移動 ATTACK_LOCK_DURATION（不做普攻判定，
+## 判定由技能自己處理，例如盾擊）。
+func play_skill_swing(dir: Vector2) -> void:
+	if state == State.DEAD:
+		return
+	if state == State.BLOCK:
+		_cancel_block()
+	state = State.ATTACK
+	$Sprite2D.flip_h = dir.x < 0 and abs(dir.x) >= abs(dir.y)
+	animation_tree.set("parameters/attack/BlendSpace2D/blend_position", dir)
+	animation_tree.set("parameters/attack/TimeScale/scale", ATTACK_ANIM_LENGTH / ATTACK_LOCK_DURATION)
+	update_animation()
+	await get_tree().create_timer(ATTACK_LOCK_DURATION).timeout
+	if state == State.ATTACK:
+		state = State.IDLE
 
 ## 蓄力斬（數值在 charge_slash_skill，見 charge_slash_skill_data.gd）：按住左鍵超過 CLICK_HOLD_THRESHOLD
 ## 開始蓄力，charge_effect 播放 charge 動畫（大圖，loop，一輪時長對齊蓄力時間），移動速度依技能的
@@ -524,6 +542,7 @@ func deal_damage(is_counter: bool = false, damage_multiplier: float = 1.0, singl
 
 	if is_counter and hit_any:
 		_spawn_counter_effect(last_target.global_position)
+		Sfx.play(self, SFX_COUNTER, -2.0)
 
 func take_damage(amount: int, type: DamageNumber.DamageType = DamageNumber.DamageType.PHYSICAL, attacker: Node2D = null) -> void:
 	if state == State.DEAD:
@@ -539,10 +558,10 @@ func take_damage(amount: int, type: DamageNumber.DamageType = DamageNumber.Damag
 		blocked = true
 		block_success = true
 		_spawn_block_effect()
+		Sfx.play(self, SFX_BLOCK, -3.0, 0.05)
 		is_parry_active = false
 		if state == State.BLOCK:
 			state = State.IDLE
-			_set_block_visual(false)
 			update_animation()
 		# 只有近戰（物理）攻擊格擋成功才把對方震退：遠程/爆炸傷害來源（例如炸彈客）
 		# 命中當下人可能離很遠，套用震退會變成敵人莫名滑動一下，很奇怪。
@@ -559,6 +578,9 @@ func take_damage(amount: int, type: DamageNumber.DamageType = DamageNumber.Damag
 	_update_hp_label()
 	_spawn_damage_number(final_damage)
 	_flash_damage()
+	# 格擋成功已經播了鏘聲，剩餘的減傷不再疊被擊中音效
+	if not blocked:
+		Sfx.play(self, SFX_HURT, -4.0, 0.1)
 	if attacker and not blocked:
 		apply_knockback(global_position - attacker.global_position, KNOCKBACK_ON_HIT)
 	if hp <= 0:

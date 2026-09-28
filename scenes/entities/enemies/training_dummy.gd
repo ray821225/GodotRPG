@@ -25,6 +25,10 @@ func taunt(_source: Node2D) -> void:
 	if state != State.DEAD:
 		_show_alert()
 
+## 釘在地上，不會被擊飛（盾擊命中的傷害照算）
+func knock_flying(_dir: Vector2, _distance: float, _speed: float, _collision_damage: int, _stun_chance: float, _stun_duration: float, _source: Node2D) -> void:
+	pass
+
 ## 釘在地上，不被擊退
 func apply_knockback(_direction: Vector2, _strength: float) -> void:
 	pass

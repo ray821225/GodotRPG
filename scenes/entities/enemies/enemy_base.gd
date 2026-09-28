@@ -26,6 +26,11 @@ const HIT_SOUND = preload("res://assets/audio/sfx/enemy_hit.wav")
 const HIT_SOUND_MIN_INTERVAL_MS: int = 50
 static var _last_hit_sound_ms: int = -1000
 const KNOCKBACK_ON_HIT: float = 14.0
+const STUN_STARS = preload("res://scenes/effects/stun_stars.gd")
+const KNOCK_CRASH_SOUND = preload("res://assets/audio/sfx/bash_crash.wav")
+const ENEMY_LAYER_MASK: int = 4
+## 擊飛途中每隔多久揚一次塵
+const KNOCK_DUST_INTERVAL: float = 0.06
 const WANDER_STUCK_CHECK_INTERVAL: float = 0.4
 const WANDER_STUCK_MIN_DISTANCE: float = 12.0
 const WANDER_STUCK_LIMIT: int = 3
@@ -60,6 +65,19 @@ var hp: int
 var _wander_stuck_check_elapsed: float = 0.0
 var _wander_stuck_count: int = 0
 var _wander_check_position: Vector2 = Vector2.ZERO
+
+## 擊飛（knock_flying）：剩餘距離 > 0 代表正在飛，期間狀態機暫停，撞牆/撞怪就停
+var _knock_dir: Vector2 = Vector2.ZERO
+var _knock_speed: float = 0.0
+var _knock_remaining: float = 0.0
+## 碰撞時要用的數值：damage / stun_chance / stun_duration / source
+var _knock_hit: Dictionary = {}
+var _knock_dust_elapsed: float = 0.0
+## 碰撞造成的傷害不再套受擊小擊退（否則會被 tween 推進牆裡）
+var _suppress_hit_knockback: bool = false
+## 暈眩剩餘秒數，> 0 時不移動、不攻擊
+var _stun_left: float = 0.0
+var _stun_stars: Node2D
 
 @onready var sprite: AnimatedSprite2D = $Sprite2D
 @onready var wander_timer: Timer = $WanderTimer
@@ -139,7 +157,19 @@ func _style_health_bar() -> void:
 	health_bar.add_theme_stylebox_override("fill", fill)
 	health_bar.add_theme_stylebox_override("background", bg)
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
+	# 擊飛與暈眩優先於一般狀態機
+	if state != State.DEAD:
+		if _knock_remaining > 0.0:
+			_process_knock_flight(delta)
+			return
+		if _stun_left > 0.0:
+			_stun_left -= delta
+			velocity = Vector2.ZERO
+			if _stun_left <= 0.0:
+				_end_stun()
+			return
+
 	match state:
 		State.IDLE:
 			velocity = Vector2.ZERO
@@ -276,7 +306,8 @@ func take_damage(amount: int, type: DamageNumber.DamageType = DamageNumber.Damag
 	_flash_damage()
 	_play_hit_sound(type)
 	if attacker:
-		apply_knockback(global_position - attacker.global_position, KNOCKBACK_ON_HIT)
+		if not _suppress_hit_knockback and _knock_remaining <= 0.0:
+			apply_knockback(global_position - attacker.global_position, KNOCKBACK_ON_HIT)
 		# 不管有沒有主動索敵，被打中一律反過來鎖定攻擊者、開始追擊。
 		if attacker is CharacterBody2D and attacker.has_method("take_damage"):
 			player = attacker
@@ -319,6 +350,101 @@ func _show_alert() -> void:
 	tween.parallel().tween_property(mark, "modulate:a", 0.0, 0.25)
 	tween.tween_callback(mark.queue_free)
 
+## 擊飛（盾擊等技能呼叫）：沿 dir 高速滑行 distance，途中撞到地形（move_and_collide）或
+## 另一隻敵人（形狀查詢，敵人彼此沒有物理碰撞）就停下，碰撞雙方各受 collision_damage 並各自判定暈眩。
+## 呼叫端要先呼叫這個再呼叫 take_damage()，命中那一下才不會又套到受擊小擊退。
+func knock_flying(dir: Vector2, distance: float, speed: float, collision_damage: int, stun_chance: float, stun_duration: float, source: Node2D) -> void:
+	if state == State.DEAD or dir.length() < 0.01:
+		return
+	_knock_dir = dir.normalized()
+	_knock_speed = speed
+	_knock_remaining = distance
+	_knock_hit = {"damage": collision_damage, "stun_chance": stun_chance, "stun_duration": stun_duration, "source": source}
+	_knock_dust_elapsed = 0.0
+	_stop_attacking()
+	sprite.play("idle")
+
+func _process_knock_flight(delta: float) -> void:
+	var step: float = minf(_knock_speed * delta, _knock_remaining)
+	_knock_remaining -= step
+	var collision := move_and_collide(_knock_dir * step)
+	_knock_dust_elapsed += delta
+	if _knock_dust_elapsed >= KNOCK_DUST_INTERVAL:
+		_knock_dust_elapsed = 0.0
+		_spawn_dust_effect()
+	if collision:
+		_on_knock_collision(null)
+		return
+	var other: Node = _find_overlapping_enemy()
+	if other:
+		_on_knock_collision(other)
+		return
+	if _knock_remaining <= 0.0:
+		_end_knock_flight()
+
+func _end_knock_flight() -> void:
+	_knock_remaining = 0.0
+	velocity = Vector2.ZERO
+
+## 用自己的碰撞形狀查詢重疊的其他敵人（排除自己、已死亡、正在飛的）
+func _find_overlapping_enemy() -> Node:
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape = collision_shape.shape
+	query.transform = collision_shape.global_transform
+	query.collision_mask = ENEMY_LAYER_MASK
+	query.collide_with_bodies = true
+	query.collide_with_areas = false
+	query.exclude = [get_rid()]
+	for result in get_world_2d().direct_space_state.intersect_shape(query, 8):
+		var body = result.collider
+		if body != self and body.has_method("knock_flying") and body.state != State.DEAD and body._knock_remaining <= 0.0:
+			return body
+	return null
+
+## 撞到東西：停下，自己（和被撞的敵人）受碰撞傷害並判定暈眩
+func _on_knock_collision(other: Node) -> void:
+	var info: Dictionary = _knock_hit
+	_end_knock_flight()
+	Sfx.play(self, KNOCK_CRASH_SOUND, -3.0, 0.08)
+	var source: Node2D = info.source if is_instance_valid(info.source) else null
+	_apply_collision_hit(info, source)
+	if other:
+		other._apply_collision_hit(info, source)
+
+func _apply_collision_hit(info: Dictionary, source: Node2D) -> void:
+	if state == State.DEAD:
+		return
+	_suppress_hit_knockback = true
+	take_damage(info.damage, DamageNumber.DamageType.PHYSICAL, source)
+	_suppress_hit_knockback = false
+	if state != State.DEAD and randf() < info.stun_chance:
+		stun(info.stun_duration)
+
+## 暈眩：不移動、不攻擊（正在出招的判定也關掉），頭上星星繞圈
+func stun(duration: float) -> void:
+	if state == State.DEAD:
+		return
+	_stun_left = maxf(_stun_left, duration)
+	_stop_attacking()
+	velocity = Vector2.ZERO
+	sprite.play("idle")
+	if not is_instance_valid(_stun_stars):
+		_stun_stars = STUN_STARS.new()
+		# 放在血條上方，不要壓到血條
+		_stun_stars.position = Vector2(0, health_bar.position.y - 12)
+		add_child(_stun_stars)
+
+func is_stunned() -> bool:
+	return _stun_left > 0.0
+
+func _end_stun() -> void:
+	_stun_left = 0.0
+	if is_instance_valid(_stun_stars):
+		_stun_stars.queue_free()
+	_stun_stars = null
+	if state == State.CHASE and player:
+		sprite.play("run")
+
 ## 往 direction 方向輕輕滑一小段距離，打中/被打中時用來做「有被擊中」的手感回饋。
 func apply_knockback(direction: Vector2, strength: float) -> void:
 	if direction.length() < 0.01:
@@ -350,6 +476,8 @@ func _flash_damage() -> void:
 func die() -> void:
 	state = State.DEAD
 	velocity = Vector2.ZERO
+	_end_knock_flight()
+	_end_stun()
 	_death_sound_player.play()
 	# player 此時是最後一個攻擊者（take_damage() 設定），要在歸零前先取出來發經驗值。
 	var killer: CharacterBody2D = player
@@ -454,7 +582,7 @@ func _start_wandering() -> void:
 	_wander_check_position = global_position
 
 func _on_wander_timer_timeout() -> void:
-	if state == State.IDLE:
+	if state == State.IDLE and not is_stunned():
 		_start_wandering()
 	_restart_wander_timer()
 

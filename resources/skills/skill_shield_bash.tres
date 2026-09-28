@@ -1,0 +1,25 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://scenes/skills/shield_bash_skill_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+reach = 80.0
+cone_half_angle = 60.0
+hit_damage_multiplier = 0.5
+hit_damage_multiplier_per_level = 0.05
+collision_damage_multiplier = 1.5
+collision_damage_multiplier_per_level = 0.15
+knockback_distance = 220.0
+knockback_distance_per_level = 10.0
+knockback_speed = 900.0
+stun_chance = 0.35
+stun_chance_per_level = 0.03
+stun_duration = 1.5
+stun_duration_per_level = 0.1
+id = &"shield_bash"
+display_name = "盾擊"
+roles = Array[String](["Knight"])
+cooldown = 6.0
+mp_cost = 12
+mp_cost_per_level = 1

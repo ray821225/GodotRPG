@@ -63,12 +63,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **原生能力 vs 技能**：角色原生就有的只有「普攻」（左鍵點擊）與「格擋／格擋反擊」（空白鍵），寫在 `player.gd` 裡不走 SkillData。其餘都算技能（有職業限制、之後進技能樹），包含**蓄力斬**：數值/職業/冷卻/MP 在 `skill_charge_slash.tres`（`charge_slash_skill_data.gd`），但不佔技能欄，由左鍵長按觸發（`player.gd` 的 `charge_slash_skill`）。長按達門檻時 `can_use_skill()` 不通過就當普攻；蓄滿放開走 `use_skill()` → `cast()` → `player.perform_charge_slash(倍率)`。蓄力特效/揮砍動畫/HitBox 跟普攻共用，所以執行留在 `player.gd`。
 - **施放入口**：技能欄與蓄力斬都走 `use_skill(skill)`（檢查 + cast + 扣 MP + 進冷卻），只檢查不扣用 `can_use_skill(skill)`。
 
-騎士目前技能欄（`player.gd` 的 `skill_slots`）：Q 戰旗、E 劍擊（`skill_sword_nova_2`）、R 挑釁、F 反彈護盾，T/G 空。
+騎士目前技能欄（`player.gd` 的 `skill_slots`）：Q 戰旗、E 劍擊（`skill_sword_nova_2`）、R 挑釁、T 盾擊、F 反彈護盾，G 空。
 
 跟敵人一樣拆成「資料」與「效果」：
 
 - **`scenes/skills/skill_data.gd`**（`Resource`）：共用欄位 `id`（冷卻/等級/存檔的 key，建立後不要改）、`display_name`、`icon`、`roles`（可用職業，空 = 全職業）、`max_level`、`cooldown`、`mp_cost`。`*_per_level` 欄位是每升一級的增量，用 `scaled(base, per_level, level)` 換算。子類別覆寫 `can_cast(caster)`（額外條件）與 `cast(caster, level)`（實際效果）。
 - **子類別**：`sword_nova_skill_data.gd`（落地 AOE，換 `scene` 即換素材）、`projectile_skill_data.gd`（直線投射物：火球/冰錐）、`reflect_skill_data.gd`（反彈護盾，邏輯在 `reflect_shield.gd`，玩家 `take_damage()` 在 `reflect_shield` 有值時改呼叫 `absorb()`）、`banner_skill_data.gd`（放置型增益：`war_banner.tscn` 插在滑鼠位置，限 `cast_range` 內）、`taunt_skill_data.gd`（挑釁：頭上對話框 `taunt_bubble.gd`，半徑內敵人呼叫 `taunt(source)`）。
+- **擊飛/暈眩**（`enemy_base.gd`）：`knock_flying(dir, distance, speed, collision_damage, stun_chance, stun_duration, source)` 沿 dir 滑行，撞地形（`move_and_collide`）或另一隻敵人（形狀查詢，敵人彼此沒有物理碰撞）就停，碰撞雙方各吃 collision_damage 並各自判定 `stun()`。擊飛/暈眩期間 `_physics_process` 跳過狀態機；暈眩會 `_stop_attacking()` 打斷出招，頭上顯示 `scenes/effects/stun_stars.gd`。呼叫端要**先** `knock_flying()` 再 `take_damage()`，命中那下才不會套到受擊小擊退。訓練假人覆寫成不會被擊飛。盾擊（`shield_bash_skill_data.gd`，T）是第一個使用者；其他控場技能沿用這兩個方法。
+- **技能揮擊動作**：`player.play_skill_swing(dir)` 播攻擊動畫並鎖移動，但不做普攻判定，給需要揮擊動作的技能共用。
 - **挑釁契約**：`enemy_base.gd` 的 `taunt(source)` 頭頂跳驚嘆號並鎖定 source 追擊（無視 `use_detection`）；`training_dummy.gd` 覆寫成只跳驚嘆號。
 - **增益契約**（duck typing）：`add_stat_modifier(source, stat, percent)` / `remove_stat_modifier(source)`，以來源節點為 key、同來源不疊加，由來源負責移除（戰旗在離開範圍/到期/`_exit_tree` 時移除）。玩家受傷一律用 `get_defense()`（基礎 `def` × (1 + 加成)），不要直接讀 `def`。
 - **音效**：`tools/gen_sfx.py` 以純 Python 合成（固定亂數種子），`python tools/gen_sfx.py assets/audio/sfx` 重新產生；一次性音效用 `scenes/support/sfx.gd` 的 `Sfx.play()`（掛在 current_scene、播完自動釋放）。
@@ -86,7 +88,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### 動畫
 
-- **Player**：使用 `AnimationTree` + `AnimationNodeStateMachine`，攻擊方向透過 `BlendSpace2D`（依滑鼠方向設定 `blend_position`）決定四向攻擊動畫。透過 `animation_playback.travel("idle"/"run"/"attack")` 切換。攻擊的「動作鎖定時間」（`ATTACK_LOCK_DURATION`）與「下一次可攻擊的冷卻」（`attack_speed`）刻意分開算，動畫播放速度不隨攻速拉長/壓縮，手感才不會忽快忽慢。
+- **Player**：精靈圖 `assets/sprites/player/Warrior_Blue_guard.png`（6×9 格，第 9 列 48~53 為格擋 `guard`；前 8 列與舊的 `Warrior_Blue.png` 相同）。使用 `AnimationTree` + `AnimationNodeStateMachine`（狀態 idle/run/attack/guard，BLOCK 狀態播 `guard`），攻擊方向透過 `BlendSpace2D`（依滑鼠方向設定 `blend_position`）決定四向攻擊動畫。透過 `animation_playback.travel("idle"/"run"/"attack")` 切換。攻擊的「動作鎖定時間」（`ATTACK_LOCK_DURATION`）與「下一次可攻擊的冷卻」（`attack_speed`）刻意分開算，動畫播放速度不隨攻速拉長/壓縮，手感才不會忽快忽慢。
 - **敵人**：用 `AnimatedSprite2D` + `SpriteFrames`（非 `AnimationPlayer` 逐幀 track），`sprite.play("idle"/"run"/"attack"/...)` 切換，動畫本身用幾幀、幾 fps 都由對應的 `slime_frames_*.tres` 決定，程式碼不寫死。
 - 角色動畫皆為 sprite sheet 逐格拆分（Player 用 `Sprite2D:frame` 軌道 + `hframes`/`vframes`；敵人用 `AtlasTexture` 依幀切割後組進 `SpriteFrames`）。
 

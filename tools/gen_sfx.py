@@ -157,8 +157,105 @@ def taunt():
         out.append(s)
     return out
 
+def block_clang():
+    # 格擋成功：盾牌金屬「鏘～」——不整數倍的金屬泛音（各自衰減速度不同，留一點餘音）＋開頭撞擊雜訊
+    dur = 0.5
+    partials = [(520, 1.0, 9), (520 * 2.63, 0.7, 13), (520 * 4.4, 0.45, 20), (520 * 6.8, 0.3, 28)]
+    out, lp = [], 0.0
+    for i in range(int(SR * dur)):
+        t = i / SR
+        s = sum(a * math.exp(-d * t) * math.sin(2 * math.pi * f * t) for f, a, d in partials)
+        noise = random.random() * 2 - 1
+        lp += 0.5 * (noise - lp)
+        s += (noise - lp) * math.exp(-120 * t) * 1.5
+        s += math.sin(2 * math.pi * 110 * t) * math.exp(-30 * t) * 0.6
+        out.append(s)
+    return out
+
+def player_hurt():
+    # 玩家被擊中：低頻悶「咚」＋黏糊的「啪」（帶通雜訊中心頻率往下掉，像被史萊姆拍到）＋短促低吼
+    dur = 0.28
+    out, lp1, lp2, phase, phase_g, lpg = [], 0.0, 0.0, 0.0, 0.0, 0.0
+    for i in range(int(SR * dur)):
+        t = i / SR
+        f = 50 + 70 * math.exp(-25 * t)
+        phase += 2 * math.pi * f / SR
+        s = math.sin(phase) * math.exp(-16 * t) * 1.1
+        noise = random.random() * 2 - 1
+        a1 = 0.35 * math.exp(-8 * t) + 0.05
+        lp1 += a1 * (noise - lp1)
+        lp2 += 0.04 * (noise - lp2)
+        s += (lp1 - lp2) * math.exp(-22 * t) * 1.3
+        fg = 170 - 60 * min(t / 0.2, 1)
+        phase_g += fg / SR
+        saw = 2 * (phase_g % 1.0) - 1
+        lpg += 0.12 * (saw - lpg)
+        s += lpg * math.exp(-12 * t) * 0.5 * min(t / 0.01, 1)
+        out.append(s)
+    return out
+
+def counter_hit():
+    # 反擊成功：短「咻」（高頻雜訊快速增強）→ 清亮斬擊（高頻泛音）＋低頻重擊＋閃光「叮」
+    dur = 0.55
+    swoosh = 0.06
+    out, lp = [], 0.0
+    for i in range(int(SR * dur)):
+        t = i / SR
+        noise = random.random() * 2 - 1
+        lp += 0.3 * (noise - lp)
+        s = 0.0
+        if t < swoosh:
+            k = t / swoosh
+            s += (noise - lp) * k * k * 0.9
+        else:
+            tb = t - swoosh
+            s += (noise - lp) * math.exp(-40 * tb) * 1.0
+            s += 0.6 * math.sin(2 * math.pi * 1800 * tb) * math.exp(-14 * tb)
+            s += 0.4 * math.sin(2 * math.pi * 2750 * tb) * math.exp(-18 * tb)
+            s += math.sin(2 * math.pi * (80 - 30 * min(tb / 0.2, 1)) * tb) * math.exp(-12 * tb) * 1.0
+            s += 0.35 * math.sin(2 * math.pi * 2637 * tb) * math.exp(-5 * tb) * (0.6 + 0.4 * math.sin(2 * math.pi * 12 * tb))
+        out.append(s)
+    return out
+
+def shield_bash():
+    # 盾擊命中：厚重的「砰」——低頻重擊＋盾面金屬短促共鳴（衰減比格擋快，不拖餘音）＋撞擊雜訊
+    dur = 0.3
+    out, lp, phase = [], 0.0, 0.0
+    for i in range(int(SR * dur)):
+        t = i / SR
+        f = 70 + 120 * math.exp(-35 * t)
+        phase += 2 * math.pi * f / SR
+        s = math.sin(phase) * math.exp(-14 * t) * 1.3
+        for fr, a, d in [(380, 0.5, 25), (380 * 2.7, 0.35, 35), (380 * 4.9, 0.2, 50)]:
+            s += a * math.sin(2 * math.pi * fr * t) * math.exp(-d * t)
+        noise = random.random() * 2 - 1
+        lp += 0.3 * (noise - lp)
+        s += lp * math.exp(-45 * t) * 1.2
+        out.append(s)
+    return out
+
+def bash_crash():
+    # 被擊飛的怪撞到牆/撞到怪：沉重撞擊「咚」＋碎石般的顆粒雜訊（隨機脈衝）拖尾
+    dur = 0.45
+    out, lp, phase = [], 0.0, 0.0
+    grains = sorted(random.uniform(0.02, 0.3) for _ in range(14))
+    for i in range(int(SR * dur)):
+        t = i / SR
+        f = 45 + 80 * math.exp(-20 * t)
+        phase += 2 * math.pi * f / SR
+        s = math.sin(phase) * math.exp(-10 * t) * 1.4
+        noise = random.random() * 2 - 1
+        lp += 0.2 * (noise - lp)
+        s += lp * math.exp(-18 * t) * 1.0
+        for g in grains:
+            tg = t - g
+            if 0 <= tg < 0.02:
+                s += (random.random() * 2 - 1) * math.exp(-200 * tg) * 0.5
+        out.append(s)
+    return out
+
 out_dir = sys.argv[1]
-for name, fn in [("reflect_open", shield_open), ("reflect_absorb", absorb), ("reflect_release", release), ("reflect_hit", hit), ("enemy_hit", enemy_hit), ("banner_plant", banner_plant), ("taunt", taunt)]:
+for name, fn in [("reflect_open", shield_open), ("reflect_absorb", absorb), ("reflect_release", release), ("reflect_hit", hit), ("enemy_hit", enemy_hit), ("banner_plant", banner_plant), ("taunt", taunt), ("block_clang", block_clang), ("player_hurt", player_hurt), ("counter_hit", counter_hit), ("shield_bash", shield_bash), ("bash_crash", bash_crash)]:
     path = os.path.join(out_dir, name + ".wav")
     write(path, fn())
     print("wrote", path)
