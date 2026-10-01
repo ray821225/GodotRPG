@@ -1,7 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scenes/skills/sword_nova.gd" id="1_sn"]
-[ext_resource type="Texture2D" path="res://assets/effects/groud_attack2.png" id="2_ground"]
+[ext_resource type="Texture2D" path="res://assets/effects/skills/knight/sword_drop_128_sheet.png" id="2_ground"]
 
 [node name="SwordNova2" type="Node2D"]
 script = ExtResource("1_sn")
@@ -12,7 +12,7 @@ impact_frame = 1
 visible = false
 
 [node name="GroundSprite" type="Sprite2D" parent="."]
-scale = Vector2(0.5, 0.5)
+scale = Vector2(1.2, 1.2)
 texture = ExtResource("2_ground")
-offset = Vector2(0, -104)
-hframes = 6
+offset = Vector2(0, -37)
+hframes = 10

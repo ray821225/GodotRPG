@@ -6,7 +6,7 @@ extends Node2D
 ## 剛炸開的那一幀（IMPACT_FRAME）算一次傷害，其餘幀純視覺淡出，不會重複命中。
 ## 劍落地瞬間就消失，接手播放衝擊波動畫。
 ## 同一支腳本可套不同素材：幀數直接讀 GroundSprite 的 hframes；
-## 素材本身已畫好劍落下（例如 groud_attack2.png）時關掉 sword_drop 即可。
+## 素材本身已畫好劍落下（例如 sword_drop_128_sheet.png）時關掉 sword_drop 即可。
 
 @export var sword_drop: bool = true
 @export var fps: float = 14.0
@@ -28,7 +28,8 @@ var attacker: Node2D = null
 @onready var ground_sprite: Sprite2D = $GroundSprite
 
 func _ready() -> void:
-	z_index = 100
+	# 不設 z_index，交給地圖根節點 y-sort：以節點原點（劍插地點）當深度，
+	# 施放在角色後方（上方）時角色會蓋過特效，前方則特效蓋過角色
 	ground_sprite.visible = false
 	queue_redraw()
 

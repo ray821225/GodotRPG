@@ -136,6 +136,23 @@ tracks/0/keys = {
 "values": [48, 49, 50, 51, 52, 53]
 }
 
+[sub_resource type="Animation" id="Animation_shield_bash"]
+resource_name = "shield_bash"
+length = 0.6
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [54, 55, 56, 57, 58, 59]
+}
+
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_main"]
 _data = {
 &"RESET": SubResource("Animation_reset"),
@@ -144,7 +161,8 @@ _data = {
 &"attack_up": SubResource("Animation_attack_up"),
 &"guard": SubResource("Animation_guard"),
 &"idle": SubResource("Animation_idle"),
-&"run": SubResource("Animation_run")
+&"run": SubResource("Animation_run"),
+&"shield_bash": SubResource("Animation_shield_bash")
 }
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_nh4ur"]
@@ -228,6 +246,34 @@ node_connections = [&"output", 0, &"TimeScale", &"TimeScale", 0, &"Animation"]
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_guard_attack"]
 
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_shield_bash"]
+animation = &"shield_bash"
+
+[sub_resource type="AnimationNodeTimeScale" id="AnimationNodeTimeScale_shield_bash"]
+
+[sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_shield_bash"]
+nodes/output/position = Vector2(600, 140)
+nodes/Animation/node = SubResource("AnimationNodeAnimation_shield_bash")
+nodes/Animation/position = Vector2(100, 140)
+nodes/TimeScale/node = SubResource("AnimationNodeTimeScale_shield_bash")
+nodes/TimeScale/position = Vector2(360, 140)
+node_connections = [&"output", 0, &"TimeScale", &"TimeScale", 0, &"Animation"]
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_idle_bash"]
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_run_bash"]
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_guard_bash"]
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_attack_bash"]
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_bash_idle"]
+switch_mode = 2
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_bash_run"]
+advance_mode = 0
+
 [sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_bj7e2"]
 states/Start/position = Vector2(169, 110)
 states/attack/node = SubResource("AnimationNodeBlendTree_yywfu")
@@ -238,7 +284,9 @@ states/run/node = SubResource("AnimationNodeAnimation_58kc7")
 states/run/position = Vector2(457, 51)
 states/guard/node = SubResource("AnimationNodeBlendTree_guard")
 states/guard/position = Vector2(295, 260)
-transitions = ["Start", "idle", SubResource("AnimationNodeStateMachineTransition_nh4ur"), "idle", "run", SubResource("AnimationNodeStateMachineTransition_bjvvg"), "run", "idle", SubResource("AnimationNodeStateMachineTransition_8akj5"), "idle", "attack", SubResource("AnimationNodeStateMachineTransition_pcd0u"), "run", "attack", SubResource("AnimationNodeStateMachineTransition_w3p2j"), "attack", "idle", SubResource("AnimationNodeStateMachineTransition_knby6"), "attack", "run", SubResource("AnimationNodeStateMachineTransition_635qg"), "idle", "guard", SubResource("AnimationNodeStateMachineTransition_idle_guard"), "run", "guard", SubResource("AnimationNodeStateMachineTransition_run_guard"), "guard", "idle", SubResource("AnimationNodeStateMachineTransition_guard_idle"), "guard", "run", SubResource("AnimationNodeStateMachineTransition_guard_run"), "guard", "attack", SubResource("AnimationNodeStateMachineTransition_guard_attack")]
+states/shield_bash/node = SubResource("AnimationNodeBlendTree_shield_bash")
+states/shield_bash/position = Vector2(560, 300)
+transitions = ["Start", "idle", SubResource("AnimationNodeStateMachineTransition_nh4ur"), "idle", "run", SubResource("AnimationNodeStateMachineTransition_bjvvg"), "run", "idle", SubResource("AnimationNodeStateMachineTransition_8akj5"), "idle", "attack", SubResource("AnimationNodeStateMachineTransition_pcd0u"), "run", "attack", SubResource("AnimationNodeStateMachineTransition_w3p2j"), "attack", "idle", SubResource("AnimationNodeStateMachineTransition_knby6"), "attack", "run", SubResource("AnimationNodeStateMachineTransition_635qg"), "idle", "guard", SubResource("AnimationNodeStateMachineTransition_idle_guard"), "run", "guard", SubResource("AnimationNodeStateMachineTransition_run_guard"), "guard", "idle", SubResource("AnimationNodeStateMachineTransition_guard_idle"), "guard", "run", SubResource("AnimationNodeStateMachineTransition_guard_run"), "guard", "attack", SubResource("AnimationNodeStateMachineTransition_guard_attack"), "idle", "shield_bash", SubResource("AnimationNodeStateMachineTransition_idle_bash"), "run", "shield_bash", SubResource("AnimationNodeStateMachineTransition_run_bash"), "guard", "shield_bash", SubResource("AnimationNodeStateMachineTransition_guard_bash"), "attack", "shield_bash", SubResource("AnimationNodeStateMachineTransition_attack_bash"), "shield_bash", "idle", SubResource("AnimationNodeStateMachineTransition_bash_idle"), "shield_bash", "run", SubResource("AnimationNodeStateMachineTransition_bash_run")]
 graph_offset = Vector2(-231, -13.518494)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_hitbox"]
@@ -255,7 +303,7 @@ script = ExtResource("1_635qg")
 position = Vector2(0, -32)
 texture = ExtResource("1_4flbx")
 hframes = 6
-vframes = 9
+vframes = 10
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2051218836]
 shape = SubResource("CircleShape2D_1hmtu")

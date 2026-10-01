@@ -29,6 +29,8 @@ const ATTACK_ANIM_LENGTH: float = 0.6
 ## guard 動畫原始長度（6 格 × 0.1 秒），格擋時依 block_window 加速，讓舉盾剛好在格擋判定時間內播完
 const GUARD_ANIM_LENGTH: float = 0.6
 const ATTACK_LOCK_DURATION: float = 0.3
+## shield_bash 動畫原始長度（6 格 × 0.1 秒），實際播放時壓縮到盾擊技能的 lock_duration
+const SHIELD_BASH_ANIM_LENGTH: float = 0.6
 const ATTACK_HIT_DELAY: float = 0.12
 const KNOCKBACK_ON_HIT: float = 10.0
 const KNOCKBACK_ON_BLOCK: float = 22.0
@@ -428,6 +430,22 @@ func play_skill_swing(dir: Vector2) -> void:
 	animation_tree.set("parameters/attack/TimeScale/scale", ATTACK_ANIM_LENGTH / ATTACK_LOCK_DURATION)
 	update_animation()
 	await get_tree().create_timer(ATTACK_LOCK_DURATION).timeout
+	if state == State.ATTACK:
+		state = State.IDLE
+
+## 盾擊專用動作：播 shield_bash（精靈圖第 10 列，只有側面）並鎖住移動 duration 秒。
+## 上下方向沒有對應圖，依 dir.x 正負決定朝左或朝右；判定由盾擊技能自己處理。
+func play_shield_bash(dir: Vector2, duration: float) -> void:
+	if state == State.DEAD:
+		return
+	if state == State.BLOCK:
+		_cancel_block()
+	state = State.ATTACK
+	if absf(dir.x) > 0.01:
+		$Sprite2D.flip_h = dir.x < 0
+	animation_tree.set("parameters/shield_bash/TimeScale/scale", SHIELD_BASH_ANIM_LENGTH / duration)
+	animation_playback.travel("shield_bash")
+	await get_tree().create_timer(duration).timeout
 	if state == State.ATTACK:
 		state = State.IDLE
 

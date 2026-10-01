@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d30ncgvi6i0gi"
-path="res://.godot/imported/ChatGPT.png-40a84ee7dbd6a40979ee9dc8708c2830.ctex"
+uid="uid://btq5ebntvksfv"
+path="res://.godot/imported/sword_drop_128_sheet.png-5f23487f32869a8aead1060b2f03211a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/effects/ChatGPT.png"
-dest_files=["res://.godot/imported/ChatGPT.png-40a84ee7dbd6a40979ee9dc8708c2830.ctex"]
+source_file="res://assets/effects/skills/knight/sword_drop_128_sheet.png"
+dest_files=["res://.godot/imported/sword_drop_128_sheet.png-5f23487f32869a8aead1060b2f03211a.ctex"]
 
 [params]
 

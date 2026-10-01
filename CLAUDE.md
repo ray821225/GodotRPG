@@ -88,7 +88,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### 動畫
 
-- **Player**：精靈圖 `assets/sprites/player/Warrior_Blue_guard.png`（6×9 格，第 9 列 48~53 為格擋 `guard`；前 8 列與舊的 `Warrior_Blue.png` 相同）。使用 `AnimationTree` + `AnimationNodeStateMachine`（狀態 idle/run/attack/guard，BLOCK 狀態播 `guard`），攻擊方向透過 `BlendSpace2D`（依滑鼠方向設定 `blend_position`）決定四向攻擊動畫。透過 `animation_playback.travel("idle"/"run"/"attack")` 切換。攻擊的「動作鎖定時間」（`ATTACK_LOCK_DURATION`）與「下一次可攻擊的冷卻」（`attack_speed`）刻意分開算，動畫播放速度不隨攻速拉長/壓縮，手感才不會忽快忽慢。
+- **Player**：精靈圖 `assets/sprites/player/Warrior_Blue_guard.png`（6×10 格，第 9 列 48~53 為格擋 `guard`、第 10 列 54~59 為盾擊 `shield_bash`〔只有側面，由 `play_shield_bash()` 播放〕；前 8 列與舊的 `Warrior_Blue.png` 相同）。使用 `AnimationTree` + `AnimationNodeStateMachine`（狀態 idle/run/attack/guard/shield_bash，BLOCK 狀態播 `guard`），攻擊方向透過 `BlendSpace2D`（依滑鼠方向設定 `blend_position`）決定四向攻擊動畫。透過 `animation_playback.travel("idle"/"run"/"attack")` 切換。攻擊的「動作鎖定時間」（`ATTACK_LOCK_DURATION`）與「下一次可攻擊的冷卻」（`attack_speed`）刻意分開算，動畫播放速度不隨攻速拉長/壓縮，手感才不會忽快忽慢。
 - **敵人**：用 `AnimatedSprite2D` + `SpriteFrames`（非 `AnimationPlayer` 逐幀 track），`sprite.play("idle"/"run"/"attack"/...)` 切換，動畫本身用幾幀、幾 fps 都由對應的 `slime_frames_*.tres` 決定，程式碼不寫死。
 - 角色動畫皆為 sprite sheet 逐格拆分（Player 用 `Sprite2D:frame` 軌道 + `hframes`/`vframes`；敵人用 `AtlasTexture` 依幀切割後組進 `SpriteFrames`）。
 

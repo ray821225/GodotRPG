@@ -1,17 +1,13 @@
-[gd_resource type="Resource" format=3]
+[gd_resource type="Resource" format=3 uid="uid://bd8pxmp7d6khx"]
 
-[ext_resource type="Script" path="res://scenes/skills/banner_skill_data.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://bbnrnqxu7snd4" path="res://scenes/skills/banner_skill_data.gd" id="1_script"]
 [ext_resource type="PackedScene" path="res://scenes/skills/war_banner.tscn" id="2_scene"]
 
 [resource]
 script = ExtResource("1_script")
 scene = ExtResource("2_scene")
-cast_range = 240.0
-radius = 96.0
 radius_per_level = 4.0
-duration = 10.0
 duration_per_level = 0.5
-defense_bonus = 0.3
 defense_bonus_per_level = 0.03
 id = &"war_banner"
 display_name = "戰旗"

@@ -27,13 +27,21 @@ const ENEMY_LAYER_MASK: int = 4
 @export var stun_chance_per_level: float = 0.0
 @export var stun_duration: float = 1.5
 @export var stun_duration_per_level: float = 0.0
+## 盾擊動作鎖定時間（shield_bash 動畫 6 格壓縮到這段時間內播完）
+@export var lock_duration: float = 0.36
+## 出手後幾秒才判定命中，對齊動畫衝撞那一格（第 3 格）
+@export var hit_delay: float = 0.12
 
 func cast(caster: Node2D, level: int) -> void:
 	var dir: Vector2 = (caster.get_global_mouse_position() - caster.global_position).normalized()
 	if dir.length() < 0.01:
 		dir = Vector2.DOWN
-	caster.play_skill_swing(dir)
+	caster.play_shield_bash(dir, lock_duration)
 
+	await caster.get_tree().create_timer(hit_delay).timeout
+	# 等待期間施放者可能已死亡或離開場景（換圖）
+	if not is_instance_valid(caster) or not caster.is_inside_tree() or caster.hp <= 0:
+		return
 	var target: Node2D = _find_target(caster, dir)
 	if target == null:
 		return
